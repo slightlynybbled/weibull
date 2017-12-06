@@ -110,31 +110,6 @@ class weibull(object):
         plt.ylim(Ftolnln([.01, .99]))
 
     def fit(self):
-        dat = self.data
-        # xy fit for only failures
-        fitxy = np.polyfit(np.log(dat.dropna()['data'].values),
-                           Ftolnln(dat.dropna()['med_rank'].values), 1)
-        fxy = np.poly1d(fitxy)
-        # xy fit for failures + suspensions
-        fitsxy = np.polyfit(np.log(dat.dropna()['data'].values),
-                            Ftolnln(dat.dropna()['adjm_rank'].values), 1)
-        fsxy = np.poly1d(fitsxy)
-
-        # yx fit for only failures
-        xf = Ftolnln(dat.dropna()['med_rank'].values)
-        yf = np.log(dat.dropna()['data'].values)
-        xf2 = np.linspace(Ftolnln(.001), Ftolnln(.999), 1000)
-        fit3 = np.polyfit(xf, yf, 1)
-        f3 = np.poly1d(fit3)
-
-        # yx fit for failures + suspensions
-        xfs = Ftolnln(dat.dropna()['adjm_rank'].values)
-        yfs = np.log(dat.dropna()['data'].values)
-        fit4 = np.polyfit(xfs, yfs, 1)
-        f4 = np.poly1d(fit4)
-        # plt.plot(np.exp(f4(xf2)), xf2, c = cc[3])
-
-    def fit2(self):
         """Fit data.
         
         There are four fits.  X on Y and Y on X for data with no suspensions or
