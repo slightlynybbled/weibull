@@ -1,16 +1,7 @@
-# coding: utf-8
-
-import datetime
-import os, sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-
-# import scipy.optimize
-# import scipy.stats
-#
-# import statsmodels.formula.api as smf
 import statsmodels.api as sm
 
 
@@ -53,12 +44,14 @@ def med_ra(i):
 class Weibull:
     def __init__(self, data, suspensions=None):
         self.fits = {}
+
         dat = pd.DataFrame({'data': data})
         dat.index = np.arange(1, len(dat) + 1)
         if suspensions:
             dat['susp'] = suspensions
         else:
             dat['susp'] = False
+
         dat.sort_values('data', inplace=True)
         dat['rank'] = np.arange(1, len(dat) + 1)
         dat['f_rank'] = np.nan
@@ -67,6 +60,7 @@ class Weibull:
         di = dat['susp'] == False
         dat.loc[di, 'med_rank'] = self.med_ra(dat.loc[di, 'f_rank'])
         dat['rev_rank'] = dat['rank'].values[::-1]
+
         self.data = dat
         self.calc_adjrank()
 

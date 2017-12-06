@@ -2,18 +2,18 @@ import pandas as pd
 import weibull
 import matplotlib.pyplot as plt
 
-# create table of end times
+# create table of failure times at test initialization
 units_in_test = 9
-end_times = [0] * units_in_test
+fail_times = [None] * units_in_test  # when test is started, there are no failure times
 
-end_times[8] = 6677
-end_times[0] = 8329
-end_times[1] = 8545
+fail_times[8] = 6677
+fail_times[0] = 8329
+fail_times[1] = 8545
 
-suspensions = [False if x else True for x in end_times]
-end_times = [x if x else max(end_times) for x in end_times]
+# a suspension is when a unit is removed from test before it has failed
+suspensions = [False if x else True for x in fail_times]
 
-analysis = weibull.Weibull(end_times, suspensions=suspensions)
+analysis = weibull.Weibull(fail_times, suspensions=suspensions)
 analysis.fit()
 
 analysis.plot(susp=1)
