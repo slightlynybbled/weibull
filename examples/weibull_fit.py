@@ -1,4 +1,3 @@
-import pandas as pd
 import weibull
 import matplotlib.pyplot as plt
 
@@ -16,4 +15,4 @@ analysis.fit()
 analysis.plot(susp=1)
 analysis.plot_fits('yx', linestyle='--')
 
-plt.show()
+plt.show()  # todo: make this unnecessary

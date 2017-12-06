@@ -268,7 +268,7 @@ def find_b(wdf, b):
     return wdf.loc[bi, 't']
 
 
-class weibayes(object):
+class Weibayes:
 
     def __init__(self, data, N=None, beta=2.0, cl=None):
         if N:
@@ -348,7 +348,7 @@ class weibayes(object):
         bi = np.abs(self.cdf[idxs] - np.float(b) / 100.).argmin()
         return self.cdf_x[bi]
 
-    def plot(self, **kw):
+    def plot(self):
         for n, i in enumerate(self.cl):
             plt.semilogx(self.cdf_x, _ftolnln(self.cdf[n]))
         ax = plt.gca()
@@ -396,8 +396,8 @@ class weibayes(object):
 
 
 # These functions need some work. I think they were supposed to calculation
-# multilple confidence intervals at once.
-def weibayes_calc(data, N=None, beta=2.0, cl=None):
+# multiple confidence intervals at once.
+def weibayes_calc(data, n=None, beta=2.0, cl=None):
     wcalcs = {}
     if cl:
         if type(cl) != type([]):
@@ -406,7 +406,7 @@ def weibayes_calc(data, N=None, beta=2.0, cl=None):
     else:
         cl = [50, ]
     for c in cl:
-        wcalcs[c] = weibayes(data, N=N, beta=beta, cl=c)
+        wcalcs[c] = weibayes(data, N=n, beta=beta, cl=c)
     return wcalcs
 
 
