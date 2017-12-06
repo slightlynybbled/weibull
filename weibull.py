@@ -18,27 +18,9 @@ def lnlntoF(lnln):
     return 1 - np.exp(-np.exp(np.asarray(lnln).astype(np.float)))
 
 
-def med_rb(i, n):
-    """Calculate median rank.
-    
-    Calculates by setting the cumulative binomial function to 0.5 and solving
-    for p."""
-    guess = float(i - 1) / n
-    if guess == 0:
-        guess += .01
-    return sp.optimize.fsolve(lambda x:
-                              .5 - sp.stats.binom.cdf(i - 1, n, x), guess)[0]
-
-
 def med_r(i, n):
     """Calculate median rank using Bernard's approximation."""
     return (i - 0.3) / (n + 0.4)
-
-
-def med_ra(i):
-    """Calculate median rank using Bernard's approximation."""
-    i = np.asarray(i)
-    return (i - 0.3) / (len(i) + 0.4)
 
 
 class Weibull:
@@ -75,7 +57,7 @@ class Weibull:
                   (len(dat) + 1.)) / (fdat.loc[n, 'rev_rank'] + 1)
             padj.append(pn)
             dat.loc[n, 'adj_rank'] = pn
-        dat['adjm_rank'] = med_ra(dat['adj_rank'])
+        dat['adjm_rank'] = self.med_ra(dat['adj_rank'])
 
     def med_ra(self, i):
         """Calculate median rank using Bernard's approximation."""
@@ -252,12 +234,6 @@ def weib_cdf(t, eta, beta):
     return 1 - np.exp(- (np.asarray(t) / np.float(eta)) ** np.float(beta))
 
 
-def weib_fit(x, y, prob=.2):
-    i = np.abs(y - prob).argmin()
-    fit = np.polyfit(np.log(x[:i]), np.log(y[:i]), 1)
-    return fit
-
-
 def weib_line(x, beta, intercept):
     return np.exp(np.log(x) * beta + intercept)
 
@@ -275,6 +251,7 @@ class Weibayes:
             self.data = np.ones(N) * data
         else:
             self.data = np.asarray(data)
+
         self.beta = np.float(beta)
         self.set_conf(cl)
         # self.run_calcs()
@@ -317,31 +294,27 @@ class Weibayes:
     def calc_cdf(self):
         tmin = 10 ** (np.floor(np.log10(self.icdf.min())) - 1)
         tmax = 10 ** (np.floor(np.log10(self.icdf.max())) + 1)
+
         self.cdf_x = np.linspace(tmin, tmax, 1000)
         self.cdf = np.empty((len(self.eta), len(self.cdf_x)))
+
         for n, eta in enumerate(self.eta):
             self.cdf[n, :] = 1 - np.exp(- (self.cdf_x / eta) ** self.beta)
 
     def calc_icdf(self):
         self.icdf_x = np.arange(.0001, .99, .0001)
         self.icdf = np.empty((len(self.eta), len(self.icdf_x)))
+
         tmp = pd.DataFrame(index=self.icdf_x * 100)
         for n, eta in enumerate(self.eta):
             self.icdf[n, :] = eta * np.log(1. / (1 - self.icdf_x)) ** (1 / self.beta)
             tmp[self.cl[n]] = self.icdf[n]
+
         self.blife = tmp.T
 
         # self.blife = pd.DataFrame(self.icdf, index = self.icdf_x * 100,
         #                          columns = ['cycles']).T
         self.blife.index.name = 'B'
-
-    def weib_fit(self, prob=.7):
-        """Don't need."""
-        x = self.cdf_x
-        y = self.cdf
-        i = np.abs(y - prob).argmin()
-        self.fit = np.polyfit(np.log(x[:i]), np.log(y[:i]), 1)
-        self.fitline = np.exp(np.log(x) * self.fit[0] + self.fit[1])
 
     def find_b(self, b):
         idxs = self.cdf <= 1
