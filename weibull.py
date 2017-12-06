@@ -42,15 +42,14 @@ def med_ra(i):
 
 
 class Weibull:
-    def __init__(self, data, suspensions=None):
+    def __init__(self, data):
         self.fits = {}
 
         dat = pd.DataFrame({'data': data})
         dat.index = np.arange(1, len(dat) + 1)
-        if suspensions:
-            dat['susp'] = suspensions
-        else:
-            dat['susp'] = False
+
+        # a suspension is when a unit is removed from test before it has failed
+        dat['susp'] = [False if x else True for x in data]
 
         dat.sort_values('data', inplace=True)
         dat['rank'] = np.arange(1, len(dat) + 1)

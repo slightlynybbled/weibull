@@ -36,11 +36,14 @@ end time | suspended
 
     import weibull
 
+    units_in_test = 9
+    fail_times = [None] * units_in_test  # when test is started, there are no failure times
 
-    data = [90, 96, 100, 30, 49, 45, 10, 82]
-    suspensions = [False, False,  True, False, False,  True,  True, False]
+    fail_times[8] = 6677
+    fail_times[0] = 8329
+    fail_times[1] = 8545
 
-    x = weibull.weibull(data, suspensions=suspensions)
+    x = weibull.weibull(fail_times)
     x.fit()
 
     # plot the data and fit with suspensions.  set susp = 0 to ignore
