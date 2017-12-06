@@ -35,14 +35,17 @@ end time | suspended
 82       | False
 
     import weibull
+
+
     data = [90, 96, 100, 30, 49, 45, 10, 82]
-    suspensions = [False, False,  True, False, False,  True,  True, False] 
+    suspensions = [False, False,  True, False, False,  True,  True, False]
+
     x = weibull.weibull(data, suspensions=suspensions)
-    # fit() is similar and probably an earlier iteration.  use fit2()
-    x.fit2()
+    x.fit()
+
     # plot the data and fit with suspensions.  set susp = 0 to ignore
-    # suspensions.
     x.plot(susp=1)
+
     # plot the y on x fit, ignoring suspensions
     x.plot_fits('yx', linestyle = '--')
 

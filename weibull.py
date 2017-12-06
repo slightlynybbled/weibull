@@ -15,11 +15,11 @@ import statsmodels.api as sm
 
 
 # convenience functions
-def weibull_ticks(y, pos):
+def _weibull_ticks(y, pos):
     return "{:.0f}%".format(100 * (1 - np.exp(-np.exp(y))))
 
 
-def Ftolnln(F):
+def _ftolnln(F):
     return np.log(-np.log(1 - np.asarray(F)))
 
 
@@ -50,8 +50,7 @@ def med_ra(i):
     return (i - 0.3) / (len(i) + 0.4)
 
 
-class weibull(object):
-
+class Weibull:
     def __init__(self, data, suspensions=None):
         self.fits = {}
         dat = pd.DataFrame({'data': data})
@@ -93,21 +92,21 @@ class weibull(object):
     def plot(self, susp=True, fit='yx'):
         dat = self.data
         if susp:
-            plt.semilogx(dat['data'], Ftolnln(dat['adjm_rank']), 'o')
+            plt.semilogx(dat['data'], _ftolnln(dat['adjm_rank']), 'o')
             fit = 's' + fit
         else:
-            plt.semilogx(dat['data'], Ftolnln(dat['med_rank']), 'o')
+            plt.semilogx(dat['data'], _ftolnln(dat['med_rank']), 'o')
         self.plot_fits(fit)
 
         ax = plt.gca()
-        formatter = mpl.ticker.FuncFormatter(weibull_ticks)
+        formatter = mpl.ticker.FuncFormatter(_weibull_ticks)
         ax.yaxis.set_major_formatter(formatter)
         yt_F = np.array([0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5,
                          0.6, 0.7, 0.8, 0.9, 0.95, 0.99])
-        yt_lnF = Ftolnln(yt_F)
+        yt_lnF = _ftolnln(yt_F)
         plt.yticks(yt_lnF)
 
-        plt.ylim(Ftolnln([.01, .99]))
+        plt.ylim(_ftolnln([.01, .99]))
 
     def fit(self):
         """Fit data.
@@ -116,7 +115,7 @@ class weibull(object):
         with suspensions (prefixed by 's')."""
         x0 = np.log(self.data.dropna()['data'].values)
         X = sm.add_constant(x0)
-        Y = Ftolnln(self.data.dropna()['med_rank'])
+        Y = _ftolnln(self.data.dropna()['med_rank'])
         model = sm.OLS(Y, X)
         results = model.fit()
 
@@ -132,7 +131,7 @@ class weibull(object):
         Yx = sm.add_constant(Y)
         model = sm.OLS(x0, Yx)
         results = model.fit()
-        yy = Ftolnln(np.linspace(.001, .999, 100))
+        yy = _ftolnln(np.linspace(.001, .999, 100))
         # yy = Ftolnln(np.logspace(np.log(.001), np.log(.999), 100, base=np.e))
         YY = sm.add_constant(yy)
         XX = np.exp(results.predict(YY))
@@ -144,7 +143,7 @@ class weibull(object):
 
         x0 = np.log(self.data.dropna()['data'].values)
         X = sm.add_constant(x0)
-        Y = Ftolnln(self.data.dropna()['adjm_rank'])
+        Y = _ftolnln(self.data.dropna()['adjm_rank'])
         model = sm.OLS(Y, X)
         results = model.fit()
 
@@ -358,14 +357,14 @@ class weibayes(object):
 
     def plot(self, **kw):
         for n, i in enumerate(self.cl):
-            plt.semilogx(self.cdf_x, Ftolnln(self.cdf[n]))
+            plt.semilogx(self.cdf_x, _ftolnln(self.cdf[n]))
         ax = plt.gca()
 
-        formatter = mpl.ticker.FuncFormatter(weibull_ticks)
+        formatter = mpl.ticker.FuncFormatter(_weibull_ticks)
         ax.yaxis.set_major_formatter(formatter)
         yt_F = np.array([0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5,
                          0.6, 0.7, 0.8, 0.9, 0.95, 0.99])
-        yt_lnF = Ftolnln(yt_F)
+        yt_lnF = _ftolnln(yt_F)
         plt.yticks(yt_lnF)
 
         plt.ylim(yt_lnF[1], yt_lnF[-1])
