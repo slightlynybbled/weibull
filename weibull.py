@@ -46,7 +46,7 @@ def med_ra(i):
 
 class weibull(object):
     
-    def __init__(self, data, suspensions = None):
+    def __init__(self, data, suspensions=None):
         self.fits = {}
         dat = pd.DataFrame({'data': data})
         dat.index = np.arange(1, len(dat) + 1)
@@ -71,7 +71,7 @@ class weibull(object):
         fdat = dat[dat['susp'] == False]
         N = len(fdat)
         padj = [0]
-        for i in xrange(N):
+        for i in range(N):
             n = fdat.index[i]
             pn = (fdat.loc[n, 'rev_rank'] * padj[-1] + 
                   (len(dat) + 1.))/(fdat.loc[n, 'rev_rank'] + 1)
@@ -101,7 +101,7 @@ class weibull(object):
         yt_lnF = Ftolnln(yt_F)
         plt.yticks(yt_lnF)
 
-        plt.ylim(Ftolnln([.01,.99]))
+        plt.ylim(Ftolnln([.01, .99]))
     
     def fit(self):
         dat = self.data
@@ -318,7 +318,7 @@ class weibayes(object):
         cl0 = [50.,]
         if cl:
             cl0 += cls(cl)
-        print cl0
+        print(cl0)
         cl = np.asarray(cl0)
         alpha = 1 - cl/100.
         r = -np.log(alpha)
