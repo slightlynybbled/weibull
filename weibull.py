@@ -1,9 +1,13 @@
+import logging
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import statsmodels.api as sm
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 # convenience functions
 def _weibull_ticks(y, pos):
@@ -25,7 +29,7 @@ def med_r(i, n):
 
 class Weibull:
     def __init__(self, data):
-        self.fits = {}
+        self._fits = {}
 
         dat = pd.DataFrame({'data': data})
         dat.index = np.arange(1, len(dat) + 1)
@@ -43,7 +47,13 @@ class Weibull:
         dat['rev_rank'] = dat['rank'].values[::-1]
 
         self.data = dat
+        logger.debug('\n{}'.format(self.data))
         self.calc_adjrank()
+        self.fit()
+
+        fit = 'syx' if any(dat['susp']) else 'yx'
+        logger.info('beta: {:.2f}, eta: {:.2f}'.format(
+                    self._fits[fit]['beta'], self._fits[fit]['eta']))
 
     def calc_adjrank(self):
         dat = self.data
@@ -64,13 +74,17 @@ class Weibull:
         i = np.asarray(i)
         return (i - 0.3) / (len(i) + 0.4)
 
-    def plot(self, susp=True, fit='yx'):
+    def plot(self, fit='yx'):
         dat = self.data
+
+        susp = any(dat['susp'])
+
         if susp:
             plt.semilogx(dat['data'], _ftolnln(dat['adjm_rank']), 'o')
             fit = 's' + fit
         else:
             plt.semilogx(dat['data'], _ftolnln(dat['med_rank']), 'o')
+
         self.plot_fits(fit)
 
         ax = plt.gca()
@@ -83,11 +97,15 @@ class Weibull:
 
         plt.ylim(_ftolnln([.01, .99]))
 
+        plt.show()
+
     def fit(self):
-        """Fit data.
+        """
+        Fit data.
         
         There are four fits.  X on Y and Y on X for data with no suspensions or
-        with suspensions (prefixed by 's')."""
+        with suspensions (prefixed by 's').
+        """
         x0 = np.log(self.data.dropna()['data'].values)
         X = sm.add_constant(x0)
         Y = _ftolnln(self.data.dropna()['med_rank'])
@@ -98,7 +116,8 @@ class Weibull:
         XX = sm.add_constant(np.log(xx))
         YY = results.predict(XX)
         eta = np.exp(-results.params[0] / results.params[1])
-        self.fits['xy'] = {'results': results, 'model': model,
+
+        self._fits['xy'] = {'results': results, 'model': model,
                            'line': np.row_stack([xx, YY]),
                            'beta': results.params[1],
                            'eta': eta}
@@ -106,12 +125,13 @@ class Weibull:
         Yx = sm.add_constant(Y)
         model = sm.OLS(x0, Yx)
         results = model.fit()
+
         yy = _ftolnln(np.linspace(.001, .999, 100))
-        # yy = Ftolnln(np.logspace(np.log(.001), np.log(.999), 100, base=np.e))
         YY = sm.add_constant(yy)
         XX = np.exp(results.predict(YY))
         eta = np.exp(results.predict([1, 0]))
-        self.fits['yx'] = {'results': results, 'model': model,
+
+        self._fits['yx'] = {'results': results, 'model': model,
                            'line': np.row_stack([XX, yy]),
                            'beta': 1 / results.params[1],
                            'eta': eta[0]}
@@ -126,7 +146,8 @@ class Weibull:
         XX = sm.add_constant(np.log(xx))
         YY = results.predict(XX)
         eta = np.exp(-results.params[0] / results.params[1])
-        self.fits['sxy'] = {'results': results, 'model': model,
+
+        self._fits['sxy'] = {'results': results, 'model': model,
                             'line': np.row_stack([xx, YY]),
                             'beta': results.params[1],
                             'eta': eta}
@@ -134,19 +155,20 @@ class Weibull:
         Yx = sm.add_constant(Y)
         model = sm.OLS(x0, Yx)
         results = model.fit()
+
         YY = sm.add_constant(yy)
         XX = np.exp(results.predict(YY))
         eta = np.exp(results.predict([1, 0]))
-        self.fits['syx'] = {'results': results, 'model': model,
+
+        self._fits['syx'] = {'results': results, 'model': model,
                             'line': np.row_stack([XX, yy]),
                             'beta': 1 / results.params[1],
                             'eta': eta[0]}
 
     def plot_fits(self, fit='syx', **kw):
-        dat = self.fits[fit]['line']
+        dat = self._fits[fit]['line']
+
         plt.plot(dat[0], dat[1], **kw)
-        print('beta: {:.2f}, eta: {:.2f}'.format(
-            self.fits[fit]['beta'], self.fits[fit]['eta']))
 
 
 # weibull test setup
