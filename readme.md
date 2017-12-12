@@ -35,26 +35,18 @@ end time | suspended
 82       | False
 
     import weibull
-
+    
+    # create blank table of failure times at test initialization
     units_in_test = 9
     fail_times = [None] * units_in_test  # when test is started, there are no failure times
-
+    
+    # unit numbers and failure times
     fail_times[8] = 6677
     fail_times[0] = 8329
     fail_times[1] = 8545
-
-    x = weibull.weibull(fail_times)
-    x.fit()
-
-    # plot the data and fit with suspensions.  set susp = 0 to ignore
-    x.plot(susp=1)
-
-    # plot the y on x fit, ignoring suspensions
-    x.plot_fits('yx', linestyle = '--')
-
-    # out
-    # beta: 2.02, eta: 95.00
-    # beta: 2.16, eta: 79.80
+    
+    analysis = weibull.Weibull(fail_times)
+    analysis.plot()
 
 ![weibull fit](images/weibull-fit.png)
 
