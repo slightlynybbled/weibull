@@ -1,14 +1,26 @@
+from scipy.stats import weibull_min
+import numpy as np
 import weibull
 
-# create blank table of failure times at test initialization
-units_in_test = 9
-fail_times = [None] * units_in_test  # when test is started, there are no failure times
+# simulate a complete set of failure times
+N = 10
 
-# unit numbers and failure times
-fail_times[8] = 6677
-fail_times[0] = 8329
-fail_times[1] = 8545
+bins = 10
+beta = 1.4
+scale = 10000
+
+x = scale * np.arange(1, N)
+fail_times = weibull_min(beta, scale=scale).rvs(N)
 
 analysis = weibull.Weibull(fail_times)
 analysis.plot()
 
+# take real data and supply it for the failure times
+fail_times = [None] * 10
+fail_times[5] = 461
+fail_times[1] = 1444
+fail_times[6] = 1444
+fail_times[3] = 1783
+
+analysis = weibull.Weibull(fail_times)
+analysis.plot()
