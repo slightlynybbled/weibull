@@ -202,12 +202,15 @@ class Design:
         self.confidence_level = confidence_level
         self.beta = expected_beta
 
-        print(f'The number of units required to prove {self.target_cycles} cycles at {self.reliability} reliability and a confidence level of {self.confidence_level} is {self._num_of_units():.01f}.')
+        print(f'The number of units required to prove {self.target_cycles} cycles at {self.reliability} reliability and a confidence level of {self.confidence_level} within {self.test_cycles} cycles is {self._calc_num_of_units():.01f}.')
+        print(f'The number of cycles required to prove {self.target_cycles} cycles at {self.reliability} reliability and a confidence level of {self.confidence_level} using {self.number_of_units} units is {self._calc_test_cycles():.01f}.')
 
-    def _num_of_units(self):
+    def _calc_num_of_units(self):
         """
         Design a test, calculating the number of units
         required to run for the test duration / cycles
+
+        :return: number of units required for the test
         """
 
         b = -np.log(self.reliability)
@@ -218,6 +221,22 @@ class Design:
         units = np.log(1 - self.confidence_level) / (-(self.test_cycles / ee) ** self.beta)
 
         return units
+
+    def _calc_test_cycles(self):
+        """
+        Design a test, calculating the test duration/cycles
+        to prove the required reliability
+
+        :return: the required duration or cycles
+        """
+
+        b = -np.log(self.reliability)
+        c = b ** (1. / self.beta)
+
+        ee = self.target_cycles / c
+
+        cycles = (-np.log((1 - self.confidence_level) ** (1.0 / self.number_of_units))) ** (1. / self.beta) * ee
+        return cycles
 
 
 # weibull test setup
