@@ -43,7 +43,7 @@ class Weibull:
 
         self.data = dat
         logger.debug('\n{}'.format(self.data))
-        self.calc_adjrank()
+        self._calc_adjrank()
         self._fit()
 
         fit = 'syx' if any(dat['susp']) else 'yx'
@@ -53,7 +53,7 @@ class Weibull:
         self.beta = self._fits[fit]['beta']
         self.eta = self._fits[fit]['eta']
 
-    def calc_adjrank(self):
+    def _calc_adjrank(self):
         dat = self.data
         dat['adj_rank'] = np.nan
         fdat = dat[dat['susp'] == False]
