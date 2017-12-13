@@ -8,6 +8,6 @@ fail_times[8] = 2550.9
 fail_times[6] = 3043.4
 
 analysis = weibull.Weibull(fail_times)
-analysis.plot()
+analysis.plot(file_name='weibull-_fit.png')  # option to save as an image
 
 print(f'beta: {analysis.beta}\teta: {analysis.eta}')

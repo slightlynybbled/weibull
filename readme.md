@@ -12,27 +12,27 @@ I wrote this while working at a manufacturing company.  Before I could polish it
 
 ## Classes and methods
 
-### Weibull fit
+### Weibull _fit
 
-Suspended data can be fit as well as unsuspended data.  Four fits are performed:
+Suspended data can be _fit as well as unsuspended data.  Four fits are performed:
 
-A basic example is shown here, but more complete examples may be found within the [examples](./examples) directory.
+A basic example is shown here, but more complete examples may be found within the [examples](examples/) directory.
 
     import weibull
     
-    # create blank table of failure times at test initialization
-    units_in_test = 9
-    fail_times = [None] * units_in_test  # when test is started, there are no failure times
-    
-    # unit numbers and failure times
-    fail_times[8] = 6677
-    fail_times[0] = 8329
-    fail_times[1] = 8545
+    # take real data and supply it for the failure times,
+    # leaving right-censored data as None
+    fail_times = [None] * 10
+    fail_times[7] = 1034.5
+    fail_times[8] = 2550.9
+    fail_times[6] = 3043.4
     
     analysis = weibull.Weibull(fail_times)
     analysis.plot()
+    
+    print(f'beta: {analysis.beta}\teta: {analysis.eta}')
 
-![weibull fit](images/weibull-fit.png)
+![weibull _fit](images/weibull-fit.png)
 
 ### Test design
 

@@ -29,7 +29,7 @@ def med_r(i, n):
 
 class Weibull:
     """
-    Based on life data, calculates a 2-parameter weibull fit
+    Based on life data, calculates a 2-parameter weibull _fit
     """
     def __init__(self, data):
         self._fits = {}
@@ -52,7 +52,7 @@ class Weibull:
         self.data = dat
         logger.debug('\n{}'.format(self.data))
         self.calc_adjrank()
-        self.fit()
+        self._fit()
 
         fit = 'syx' if any(dat['susp']) else 'yx'
         logger.info('beta: {:.2f}, eta: {:.2f}'.format(
@@ -80,18 +80,18 @@ class Weibull:
         i = np.asarray(i)
         return (i - 0.3) / (len(i) + 0.4)
 
-    def plot(self, fit='yx'):
+    def plot(self, file_name=None, **kwargs):
         dat = self.data
 
         susp = any(dat['susp'])
+        fit = 'syx' if susp else 'yx'
 
         if susp:
             plt.semilogx(dat['data'], _ftolnln(dat['adjm_rank']), 'o')
-            fit = 's' + fit
         else:
             plt.semilogx(dat['data'], _ftolnln(dat['med_rank']), 'o')
 
-        self.plot_fits(fit)
+        self.plot_fits(fit, **kwargs)
 
         ax = plt.gca()
         formatter = mpl.ticker.FuncFormatter(_weibull_ticks)
@@ -103,9 +103,12 @@ class Weibull:
 
         plt.ylim(_ftolnln([.01, .99]))
 
-        plt.show()
+        if file_name:
+            plt.savefig(file_name)
+        else:
+            plt.show()
 
-    def fit(self):
+    def _fit(self):
         """
         Fit data.
         
@@ -171,10 +174,10 @@ class Weibull:
                             'beta': 1 / results.params[1],
                             'eta': eta[0]}
 
-    def plot_fits(self, fit='syx', **kw):
+    def plot_fits(self, fit='syx', **kwargs):
         dat = self._fits[fit]['line']
 
-        plt.plot(dat[0], dat[1], **kw)
+        plt.plot(dat[0], dat[1], **kwargs)
 
 
 # weibull test setup
