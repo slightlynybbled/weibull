@@ -174,17 +174,15 @@ class Analysis:
 
 class Design:
     """
-    The design class will determine the required test time required given the number of units
-    under test and the target cycles OR it will determine the number of units given the
-    test time and the target cycles.
+    Will determine the required test time required given the number of units
+    under test and the target cycles OR it will determine the number of units
+    given the test time and the target cycles.
     """
 
-    def __init__(self, number_of_units, test_cycles, target_cycles,
+    def __init__(self, target_cycles,
                  reliability=0.9, confidence_level=0.9, expected_beta=2.0):
         """
         Initializes the Design class
-        :param number_of_units: the expected number of units to enter the test
-        :param test_time: the expected test duration
         :param target_cycles: the target number of cycles
         :param reliability: the fraction of units still running after target_cycles
         :param confidence_level: the fractional level of confidence
@@ -195,17 +193,18 @@ class Design:
         if not 0.01 <= confidence_level <= 0.99:
             raise ValueError('The confidence level must be between 0.01 and 0.99')
 
-        self.number_of_units = number_of_units
-        self.test_cycles = test_cycles
         self.target_cycles = target_cycles
         self.reliability = reliability
         self.confidence_level = confidence_level
         self.beta = expected_beta
 
-        print(f'The number of units required to prove {self.target_cycles} cycles at {self.reliability} reliability and a confidence level of {self.confidence_level} within {self.test_cycles} cycles is {self._calc_num_of_units():.01f}.')
-        print(f'The number of cycles required to prove {self.target_cycles} cycles at {self.reliability} reliability and a confidence level of {self.confidence_level} using {self.number_of_units} units is {self._calc_test_cycles():.01f}.')
+    def num_of_units(self, test_cycles):
+        return self._calc_num_of_units(test_cycles)
 
-    def _calc_num_of_units(self):
+    def num_of_cycles(self, num_of_units):
+        return self._calc_test_cycles(num_of_units)
+
+    def _calc_num_of_units(self, test_cycles):
         """
         Design a test, calculating the number of units
         required to run for the test duration / cycles
@@ -214,15 +213,15 @@ class Design:
         """
 
         b = -np.log(self.reliability)
-        c = b ** (1. / self.beta)
+        c = b ** (1.0 / self.beta)
 
         ee = self.target_cycles / c
 
-        units = np.log(1 - self.confidence_level) / (-(self.test_cycles / ee) ** self.beta)
+        units = np.log(1.0 - self.confidence_level) / (-(test_cycles / ee) ** self.beta)
 
         return units
 
-    def _calc_test_cycles(self):
+    def _calc_test_cycles(self, number_of_units):
         """
         Design a test, calculating the test duration/cycles
         to prove the required reliability
@@ -231,84 +230,12 @@ class Design:
         """
 
         b = -np.log(self.reliability)
-        c = b ** (1. / self.beta)
+        c = b ** (1.0 / self.beta)
 
         ee = self.target_cycles / c
 
-        cycles = (-np.log((1 - self.confidence_level) ** (1.0 / self.number_of_units))) ** (1. / self.beta) * ee
+        cycles = (-np.log((1.0 - self.confidence_level) ** (1.0 / number_of_units))) ** (1.0 / self.beta) * ee
         return cycles
-
-
-# weibull test setup
-
-# enhanced DE - 62 valve, 62 M cycles, B2, 95% CL with a target of 40 million
-# cycles
-# weibull.weib_t(62, 4e7, .98, .95, beta=2.) / 1e6
-def weib_t(n, t, r=.9, cl=.9, beta=2):
-    """calculate time (cycles) for reliability testing.
-    
-    n = number tested
-    t = target cycles
-    r = reliability
-    cl = confidence level
-    beta = weibull beta"""
-    # a = (1-r)**(1./n)
-    b = -np.log(r)
-    c = b ** (1. / beta)
-
-    # print a, b, c
-    ee = t / c
-
-    # print ee
-    t2 = (-np.log((1 - cl) ** (1. / n))) ** (1. / beta) * ee
-    return t2
-
-
-def weib_n(testt, t, r=.9, cl=.9, beta=2):
-    """calculate number of samples for reliability testing.
-    
-    testt = time for test (cycles)
-    t = target cycles
-    r = reliability
-    cl = confidence level
-    beta = weibull beta"""
-    # a = (1-r)**(1./n)
-    b = -np.log(r)
-    c = b ** (1. / beta)
-
-    # print a, b, c
-    ee = t / c
-
-    # print ee
-    n2 = np.log(1 - cl) / (-(testt / ee) ** (beta))
-    return n2
-
-
-def test_conf(conf=.9, rel=.9):
-    """conf is test confidence. rel is reliability."""
-    return np.log(1 - conf) / np.log(rel)
-
-
-def eta_calc(t, r=90., beta=2.0):
-    t = np.float(t)
-    beta = np.float(beta)
-    rr = r / 100.
-    eta = t / (-np.log(rr)) ** (1 / beta)
-    return eta
-
-
-def weib_cdf(t, eta, beta):
-    return 1 - np.exp(- (np.asarray(t) / np.float(eta)) ** np.float(beta))
-
-
-def weib_line(x, beta, intercept):
-    return np.exp(np.log(x) * beta + intercept)
-
-
-def find_b(wdf, b):
-    idxs = wdf['cdf'] <= 1
-    bi = np.abs(wdf.loc[idxs, 'cdf'] - np.float(b) / 100.).argmin()
-    return wdf.loc[bi, 't']
 
 
 class Weibayes:

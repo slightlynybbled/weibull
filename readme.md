@@ -4,7 +4,7 @@ I (slightlynybbled) forked this repository - including the readme - and I am cur
 
 As I advance in refactoring the library into a more complete and useable package, I will eventually replace all of the text of the readme with appropriate substitutions and remove this temporary disclaimer.
 
-# Weibull reliability analysis
+# Weibull Reliability Analysis
 
 This is a rough collection of Weibull analysis routines.  I make no claim to the accuracy.
 
@@ -42,15 +42,34 @@ A basic example is shown here, but more complete examples may be found within th
 
 # Test design
 
-Target lifetime is `t = 100`, reliability is 90% (`r = 0.9`), and 95% confidence limit (`cl = 0.95`).  Beta is 1.5.  The first scenario is you have 48 time units to test; how many test units do you need?  The answer is 86 units
+The `Design` class is to be utilized for two scenarios:
 
-    weibull.weib_n(48, t = 100, r = .9, cl = .95, beta = 1.5)
-    # 85.49..
+ - determine the required number of units to prove the target reliability given a test cycles/duration
+ - determine the required number of cycles/duration to prove the target reliability given a number of units
+ 
+To begin, first import and instantiate the `Designer`, which is the utility for the test designer.  There are several parameters to consider and all of them are requirements or assumptions that must be entered as parameters for the `Designer` class:
 
-The second scenario is that you have 20 units to test; how long should you test?  126.4 time units.
+ - `target_cycles` - the target to be proven in hours/days/weeks/cycles
+ - `reliability` - defaults to 0.9
+ - `confidence_level` - defaults to 0.95
+ - `expected_beta` - an initial assumption for beta (defaults to 2)
 
-    weibull.weib_t(20, t = 100, r = .9, cl = .95, beta = 1.5)
-    # 126.4...
+Shown are two example calculations for a target lifetime of 10000 hours with a reliability of 0.9 at a confidence level of 0.5 and beta assumption of 1.5:
+
+    import weibull
+    
+    designer = weibull.Design(
+        target_cycles=10000,
+        reliability=0.9,
+        confidence_level=0.90,
+        expected_beta=1.5
+    )
+    
+    # The 'test_cycles' parameter can be in any units.
+    # Days, weeks, hours, cycles, etc., so long
+    #   as the target unit is consistent
+    print(f'Minimum number of units for 10000 hour run: {designer.num_of_units(test_cycles=10000)}')
+    print(f'Minimum hours for 20 units: {designer.num_of_cycles(num_of_units=20)}')
 
 # Weibayes
 
