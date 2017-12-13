@@ -18,3 +18,5 @@ fail_times = [
 # this is where the actual analysis occurs
 analysis = weibull.Weibull(fail_times)
 analysis.plot()
+
+print(f'beta: {analysis.beta}\teta: {analysis.eta}')

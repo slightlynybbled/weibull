@@ -28,6 +28,9 @@ def med_r(i, n):
 
 
 class Weibull:
+    """
+    Based on life data, calculates a 2-parameter weibull fit
+    """
     def __init__(self, data):
         self._fits = {}
 
@@ -54,6 +57,9 @@ class Weibull:
         fit = 'syx' if any(dat['susp']) else 'yx'
         logger.info('beta: {:.2f}, eta: {:.2f}'.format(
                     self._fits[fit]['beta'], self._fits[fit]['eta']))
+
+        self.beta = self._fits[fit]['beta']
+        self.eta = self._fits[fit]['eta']
 
     def calc_adjrank(self):
         dat = self.data
@@ -187,8 +193,10 @@ def weib_t(n, t, r=.9, cl=.9, beta=2):
     # a = (1-r)**(1./n)
     b = -np.log(r)
     c = b ** (1. / beta)
+
     # print a, b, c
     ee = t / c
+
     # print ee
     t2 = (-np.log((1 - cl) ** (1. / n))) ** (1. / beta) * ee
     return t2
@@ -224,33 +232,6 @@ def eta_calc(t, r=90., beta=2.0):
     eta = t / (-np.log(rr)) ** (1 / beta)
     return eta
 
-
-# These are duplicates of weib_n and weib_t above
-#
-# def test_t(n = 22, t = 100, r = .9, cl = .9, beta = 2.0):
-#     beta = np.float(beta)
-#     t_demo = np.float(t)
-#     eta = t_demo / (-np.log(r))**(1/beta)
-#     t_test = eta * ((-np.log(1 - cl)) / n)**(1/beta)
-#     return t_test
-#
-# def test_n(t_test = 100, t_demo = 100, r = .9, cl = .9, beta = 2.0):
-#     beta = np.float(beta)
-#     eta = t_demo / (-np.log(r))**(1/beta)
-#     n = (- np.log(1 - cl)) / (t_test/eta)**beta
-#     return n
-
-# weibayes
-
-# def weibayesN(N, t, beta = 2, r = 1.0):
-#     beta = np.float(beta)
-#     eta = ( N * (t**np.float(beta)) / r )**(1/beta)
-#     return eta
-#
-# def weibayes(t, beta = 2.0, r = 1.0):
-#     beta = np.float(beta)
-#     etaseries = ((np.asarray(t)**beta) / r )
-#     return etaseries.sum()**(1/beta)
 
 def weib_cdf(t, eta, beta):
     return 1 - np.exp(- (np.asarray(t) / np.float(eta)) ** np.float(beta))

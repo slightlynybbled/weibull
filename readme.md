@@ -16,23 +16,7 @@ I wrote this while working at a manufacturing company.  Before I could polish it
 
 Suspended data can be fit as well as unsuspended data.  Four fits are performed:
 
-- xy - X on Y, no suspensions
-- yx - Y on X, no suspensions
-- sxy - X on Y with suspensions
-- syx - Y on X with suspensions
-
-Beta and eta are reported for each fit.  I guess I never got around to putting the fit parameters on the plot like I did for the Weibayes analysis below.
-
-end time | suspended
--------- | ---------
-90       | False
-96       | False
-100      | True
-30       | False
-49       | False
-45       | True
-10       | True
-82       | False
+A basic example is shown here, but more complete examples may be found within the [examples](./examples) directory.
 
     import weibull
     
