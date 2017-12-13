@@ -7,7 +7,7 @@ t = [6.2e7] * 62
 ww = weibull.Weibayes(t, confidence_level=0.95, beta=2)
 
 # display plot and lifetime block
-print(ww.b_life())
+print(ww.b(10))
 ww.plot()
 
 # annotate with B2 (98% survival) values

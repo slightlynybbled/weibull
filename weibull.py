@@ -253,7 +253,7 @@ class Weibayes:
         self.confidence_level, self.r = None, None
         self.blife = None
 
-        self.set_conf(confidence_level)
+        self.set_confidence_level(confidence_level)
 
     def __str__(self):
         return f'weibayes: [eta: {self.eta:.02f}, beta: {self.beta:.02f}, cl: {self.confidence_level}]'
@@ -266,8 +266,9 @@ class Weibayes:
         self.calc_icdf()
         self.calc_cdf()
 
-    def set_conf(self, cl):
-        confidence_levels = [0.5, cl]
+    def set_confidence_level(self, cl):
+        #confidence_levels = [0.5, cl]
+        confidence_levels = [cl]
 
         cl = np.asarray(confidence_levels)
         alpha = 1.0 - cl
@@ -316,11 +317,6 @@ class Weibayes:
 
         self.blife.index.name = 'B'
 
-    def b_value(self, b):
-        idxs = self.cdf <= 1
-        bi = np.abs(self.cdf[idxs] - np.float(b) / 100.).argmin()
-        return self.cdf_x[bi]
-
     def plot(self):
         for n, i in enumerate(self.confidence_level):
             plt.semilogx(self.cdf_x, _ftolnln(self.cdf[n]))
@@ -362,13 +358,15 @@ class Weibayes:
                 *self.blife[b].values.tolist()),
                      transform=ax.transAxes)
 
-    def b_life(self, bs=(0.01, 0.02, 0.05, 0.10)):
+    def b(self, b_spec=10):
         """
-        Prints a table that contains the percent survival at confidence
-        :param bs:
+        Calculates the B-life
+
+        :param b:
         :return:
         """
-        string = str(self.blife[list(bs)].T)
+        b_spec_decimal = b_spec / 100.0
+        string = f'{float(self.blife[b_spec_decimal].T):.02f}'
         return string
 
 
