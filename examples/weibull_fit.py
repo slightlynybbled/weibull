@@ -1,26 +1,20 @@
-from scipy.stats import weibull_min
-import numpy as np
 import weibull
 
-# simulate a complete set of failure times
-N = 10
+# fail times include no censored data
+fail_times = [
+    9402.7,
+    6082.4,
+    13367.2,
+    10644.6,
+    8632.0,
+    3043.4,
+    12860.2,
+    1034.5,
+    2550.9,
+    3637.1
+]
 
-bins = 10
-beta = 1.4
-scale = 10000
 
-x = scale * np.arange(1, N)
-fail_times = weibull_min(beta, scale=scale).rvs(N)
-
-analysis = weibull.Weibull(fail_times)
-analysis.plot()
-
-# take real data and supply it for the failure times
-fail_times = [None] * 10
-fail_times[5] = 461
-fail_times[1] = 1444
-fail_times[6] = 1444
-fail_times[3] = 1783
-
+# this is where the actual analysis occurs
 analysis = weibull.Weibull(fail_times)
 analysis.plot()
