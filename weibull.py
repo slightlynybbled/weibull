@@ -240,20 +240,17 @@ class Design:
 
 class Weibayes:
 
-    def __init__(self, data, num_of_units=None, confidence_level=None, beta=2.0):
+    def __init__(self, data, confidence_level=None, beta=2.0):
         if not 0.001 < confidence_level < 0.999:
             raise ValueError('confidence level must be between 0.01 and 0.99')
 
-        if num_of_units:
-            self.data = np.ones(num_of_units) * data
-        else:
-            self.data = np.asarray(data)
+        self.data = np.asarray(data)
 
         self.beta = np.float(beta)
         self.confidence_level, self.r = None, None
         self.blife = None
 
-        self.set_confidence_level(confidence_level)
+        self._set_confidence_level(confidence_level)
 
     def __str__(self):
         return f'weibayes: [eta: {self.eta:.02f}, beta: {self.beta:.02f}, cl: {self.confidence_level}]'
@@ -261,7 +258,7 @@ class Weibayes:
     def __repr__(self):
         return f"weibayes(beta={self.beta:.02f}, cl={self.confidence_level:.02f})"
 
-    def set_confidence_level(self, confidence_level):
+    def _set_confidence_level(self, confidence_level):
         cl = np.float(confidence_level)
         alpha = 1.0 - cl
         r = -np.log(alpha)
@@ -269,11 +266,11 @@ class Weibayes:
         self.confidence_level = cl
         self.r = r
 
-        self.calc()
-        self.calc_icdf()
-        self.calc_cdf()
+        self._calc()
+        self._calc_icdf()
+        self._calc_cdf()
 
-    def calc(self):
+    def _calc(self):
         etaseries = np.empty((1, len(self.data)))
 
         etaseries[0, :] = ((self.data ** self.beta) / self.r)
@@ -281,7 +278,7 @@ class Weibayes:
         self.etaseries = etaseries
         self.eta = etaseries.sum(1) ** (1 / self.beta)
 
-    def calc_cdf(self):
+    def _calc_cdf(self):
         """
         calculates the cumulative distribution function, saves within self.cdf
         :return: None
@@ -295,7 +292,7 @@ class Weibayes:
         for n, eta in enumerate(self.eta):
             self.cdf[n, :] = 1 - np.exp(- (self.cdf_x / eta) ** self.beta)
 
-    def calc_icdf(self):
+    def _calc_icdf(self):
         """
         calculates the inverse cumulative distribution function
         :return: None
@@ -311,12 +308,17 @@ class Weibayes:
 
         self.blife.index.name = 'B'
 
-    def plot(self):
+    def plot(self, confidence_level=None, file_name=None):
+        if confidence_level:
+            self._set_confidence_level(confidence_level)
+
         plt.semilogx(self.cdf_x, _ftolnln(self.cdf[0]))
-        ax = plt.gca()
+        axis = plt.gca()
+
+        axis.grid(True, which='both')
 
         formatter = mpl.ticker.FuncFormatter(_weibull_ticks)
-        ax.yaxis.set_major_formatter(formatter)
+        axis.yaxis.set_major_formatter(formatter)
         yt_F = np.array([0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5,
                          0.6, 0.7, 0.8, 0.9, 0.95, 0.99])
         yt_lnF = _ftolnln(yt_F)
@@ -325,72 +327,40 @@ class Weibayes:
         plt.ylim(yt_lnF[1], yt_lnF[-1])
         plt.xlim(self.cdf_x.min(), self.cdf_x.max())
 
-        self.plot_annotate()
+        self._plot_annotate()
 
         plt.ylabel('failure rate')
         plt.xlabel('cycles')
 
-        plt.show()
+        if file_name:
+            plt.savefig(file_name)
+        else:
+            plt.show()
 
-    def plot_annotate(self, b=None):
+    def _plot_annotate(self):
         ax = plt.gca()
-        plt.text(.02, .95, 'beta: {:.0f}'.format(self.beta),
-                 transform=ax.transAxes)
+        ax.text(0.02, 0.95, 'beta: {:.0f}'.format(self.beta), transform=ax.transAxes)
 
-        ff = ["{:.5g}, ", ]
-        ff = "".join(ff).rstrip(", ")
-        plt.text(.02, .85, 'eta: ' + ff.format(*self.eta),
-                 transform=ax.transAxes)
+        ax.text(.02, .90, f'eta: {self.eta[0]:.03g}',
+                transform=ax.transAxes)
 
-        plt.text(.02, .90, f'cl: {self.confidence_level}',
-                 transform=ax.transAxes)
-        if b:
-            plt.text(.02, .8, 'B{}: '.format(b) + ff.format(
-                *self.blife[b].values.tolist()),
-                     transform=ax.transAxes)
+        ax.text(.02, .85, f'confidence level: {self.confidence_level}', transform=ax.transAxes)
 
-    def b(self, b_spec=10):
+    def b(self, b_spec=10, confidence_level=None):
         """
         Calculates the B-life
 
-        :param b:
-        :return:
+        :param b_spec: the B-specification (for instance, '10')
+        :param confidence_level: the confidence level (usually between 0.01 and 0.99)
+        :return: the B life
         """
+        if not 1 <= b_spec <= 99:
+            raise ValueError('b_spec must be between 1 and 99 (inclusive)')
+        if confidence_level and not 0.001 < confidence_level < 0.999:
+            raise ValueError('confidence level must be between 0.01 and 0.99')
+
+        if confidence_level:
+            self._set_confidence_level(confidence_level)
+
         b_spec_decimal = b_spec / 100.0
-        string = f'{float(self.blife[b_spec_decimal].T):.02f}'
-        return string
-
-
-# These functions need some work. I think they were supposed to calculation
-# multiple confidence intervals at once.
-def weibayes_calc(data, n=None, beta=2.0, cl=None):
-    wcalcs = {}
-    if cl:
-        if type(cl) != type([]):
-            cl = [cl, ]
-        cl.append(50)
-    else:
-        cl = [50, ]
-    for c in cl:
-        wcalcs[c] = weibayes(data, N=n, beta=beta, cl=c)
-    return wcalcs
-
-
-def plot_weibayes(wcalcs):
-    w = wcalcs.copy()
-    w5 = w.pop(50)
-    t = 'cdf'
-    w5.plot(t, color=cc[0])
-    for wi in w:
-        w[wi].plot(t, color=cc[0])
-
-
-def print_weibayes(wcalcs, bs=None):
-    if not bs:
-        bs = [1, 2, 5, 10]
-    blife = pd.DataFrame(index=bs)
-    blife.index.name = 'B'
-    for w in sorted(wcalcs):
-        x = wcalcs[w].blife[bs].T
-        blife[w] = x
-    print(blife)
+        return float(self.blife[b_spec_decimal].T)

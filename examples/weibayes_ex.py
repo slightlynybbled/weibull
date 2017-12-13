@@ -1,17 +1,18 @@
 import weibull
 
-import matplotlib.pyplot as plt
+# we want N units to run for H hours each
+N = 62
+H = 62.0e6
 
-# 62 units run to 62 million time units
-t = [6.2e7] * 62
-ww = weibull.Weibayes(t, confidence_level=0.5, beta=2)
+run_times_desired = [H] * N
+weibayes = weibull.Weibayes(run_times_desired, confidence_level=0.95, beta=2)
 
-# display plot and lifetime block
-print(f'B2 life: {ww.b(2)}')
-print(f'B10 life: {ww.b(10)}')
-ww.plot()
+# show the Bx life calculations
+print(f'B2 life: {weibayes.b(2)}')
+print(f'B10 life: {weibayes.b(10)}')
 
-# annotate with B2 (98% survival) values
-#ww.plot_annotate(2)
+# plot the confidences for each (note that the Bx
+# values may be read from the Y axis)
+weibayes.plot(file_name='weibayes.png')
+weibayes.plot(0.5)
 
-#plt.show()
