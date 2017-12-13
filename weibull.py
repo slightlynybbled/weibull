@@ -9,6 +9,7 @@ import statsmodels.api as sm
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
+
 # convenience functions
 def _weibull_ticks(y, pos):
     return "{:.0f}%".format(100 * (1 - np.exp(-np.exp(y))))
@@ -16,15 +17,6 @@ def _weibull_ticks(y, pos):
 
 def _ftolnln(F):
     return np.log(-np.log(1 - np.asarray(F)))
-
-
-def lnlntoF(lnln):
-    return 1 - np.exp(-np.exp(np.asarray(lnln).astype(np.float)))
-
-
-def med_r(i, n):
-    """Calculate median rank using Bernard's approximation."""
-    return (i - 0.3) / (n + 0.4)
 
 
 class Weibull:
