@@ -261,28 +261,23 @@ class Weibayes:
     def __repr__(self):
         return f"weibayes(beta={self.beta:.02f}, cl={self.confidence_level:.02f})"
 
-    def run_calcs(self):
-        self.calc()
-        self.calc_icdf()
-        self.calc_cdf()
-
-    def set_confidence_level(self, cl):
-        #confidence_levels = [0.5, cl]
-        confidence_levels = [cl]
-
-        cl = np.asarray(confidence_levels)
+    def set_confidence_level(self, confidence_level):
+        cl = np.float(confidence_level)
         alpha = 1.0 - cl
         r = -np.log(alpha)
 
         self.confidence_level = cl
         self.r = r
 
-        self.run_calcs()
+        self.calc()
+        self.calc_icdf()
+        self.calc_cdf()
 
-    def calc(self, r=None):
-        etaseries = np.empty((len(self.r), len(self.data)))
-        for n, r in enumerate(self.r):
-            etaseries[n, :] = ((self.data ** self.beta) / r)
+    def calc(self):
+        etaseries = np.empty((1, len(self.data)))
+
+        etaseries[0, :] = ((self.data ** self.beta) / self.r)
+
         self.etaseries = etaseries
         self.eta = etaseries.sum(1) ** (1 / self.beta)
 
@@ -309,17 +304,15 @@ class Weibayes:
         self.icdf = np.empty((len(self.eta), len(self.icdf_x)))
 
         tmp = pd.DataFrame(index=self.icdf_x)
-        for n, eta in enumerate(self.eta):
-            self.icdf[n, :] = eta * np.log(1. / (1 - self.icdf_x)) ** (1 / self.beta)
-            tmp[self.confidence_level[n]] = self.icdf[n]
+        self.icdf[0, :] = self.eta * np.log(1.0 / (1.0 - self.icdf_x)) ** (1.0 / self.beta)
+        tmp[self.confidence_level] = self.icdf[0]
 
         self.blife = tmp.T  # transpose
 
         self.blife.index.name = 'B'
 
     def plot(self):
-        for n, i in enumerate(self.confidence_level):
-            plt.semilogx(self.cdf_x, _ftolnln(self.cdf[n]))
+        plt.semilogx(self.cdf_x, _ftolnln(self.cdf[0]))
         ax = plt.gca()
 
         formatter = mpl.ticker.FuncFormatter(_weibull_ticks)
@@ -333,25 +326,23 @@ class Weibayes:
         plt.xlim(self.cdf_x.min(), self.cdf_x.max())
 
         self.plot_annotate()
-        plt.show()
 
-        # plt.ylabel('failure rate')
-        # plt.xlabel('time')
+        plt.ylabel('failure rate')
+        plt.xlabel('cycles')
+
+        plt.show()
 
     def plot_annotate(self, b=None):
         ax = plt.gca()
         plt.text(.02, .95, 'beta: {:.0f}'.format(self.beta),
                  transform=ax.transAxes)
 
-        ff = ["{:.5g}, ", ] * len(self.confidence_level)
+        ff = ["{:.5g}, ", ]
         ff = "".join(ff).rstrip(", ")
         plt.text(.02, .85, 'eta: ' + ff.format(*self.eta),
                  transform=ax.transAxes)
 
-        confidence_strings = [str(c) for c in self.confidence_level]
-        confidence_string = ', '.join(confidence_strings)
-
-        plt.text(.02, .90, f'cl: {confidence_string}',
+        plt.text(.02, .90, f'cl: {self.confidence_level}',
                  transform=ax.transAxes)
         if b:
             plt.text(.02, .8, 'B{}: '.format(b) + ff.format(
