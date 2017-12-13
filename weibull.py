@@ -19,7 +19,7 @@ def _ftolnln(F):
     return np.log(-np.log(1 - np.asarray(F)))
 
 
-class Weibull:
+class Analysis:
     """
     Based on life data, calculates a 2-parameter weibull _fit
     """
@@ -208,8 +208,10 @@ def weib_n(testt, t, r=.9, cl=.9, beta=2):
     # a = (1-r)**(1./n)
     b = -np.log(r)
     c = b ** (1. / beta)
+
     # print a, b, c
     ee = t / c
+
     # print ee
     n2 = np.log(1 - cl) / (-(testt / ee) ** (beta))
     return n2

@@ -33,7 +33,7 @@ A basic example is shown here, but more complete examples may be found within th
     fail_times[8] = 2550.9
     fail_times[6] = 3043.4
     
-    analysis = weibull.Weibull(fail_times)
+    analysis = weibull.Analysis(fail_times)
     analysis.plot()
     
     print(f'beta: {analysis.beta}\teta: {analysis.eta}')
