@@ -15,8 +15,8 @@ def _weibull_ticks(y, pos):
     return "{:.0f}%".format(100 * (1 - np.exp(-np.exp(y))))
 
 
-def _ftolnln(F):
-    return np.log(-np.log(1 - np.asarray(F)))
+def _ftolnln(f):
+    return np.log(-np.log(1.0 - np.asarray(f)))
 
 
 class Analysis:
@@ -240,42 +240,42 @@ class Design:
 
 class Weibayes:
 
-    def __init__(self, data, N=None, beta=2.0, cl=None):
-        if N:
-            self.data = np.ones(N) * data
+    def __init__(self, data, num_of_units=None, confidence_level=None, beta=2.0):
+        if not 0.001 < confidence_level < 0.999:
+            raise ValueError('confidence level must be between 0.01 and 0.99')
+
+        if num_of_units:
+            self.data = np.ones(num_of_units) * data
         else:
             self.data = np.asarray(data)
 
         self.beta = np.float(beta)
-        self.set_conf(cl)
-        # self.run_calcs()
+        self.confidence_level, self.r = None, None
+        self.blife = None
+
+        self.set_conf(confidence_level)
 
     def __str__(self):
-        return "weibayes: [eta: {:.0f}, beta: {:.1f}, cl: {}]".format(
-            self.eta, self.beta, self.cl)
+        return f'weibayes: [eta: {self.eta:.02f}, beta: {self.beta:.02f}, cl: {self.confidence_level}]'
 
     def __repr__(self):
-        return "weibayes(beta={:.1f}, cl={})".format(self.beta,
-                                                     self.cl)
+        return f"weibayes(beta={self.beta:.02f}, cl={self.confidence_level:.02f})"
 
     def run_calcs(self):
         self.calc()
         self.calc_icdf()
         self.calc_cdf()
 
-    def set_conf(self, cl=None):
-        cls = lambda *c: c
-        # supersmith uses .5 as default instead of .623 like book
-        # cl = (1 - np.exp(-1)) * 100
-        cl0 = [50., ]
-        if cl:
-            cl0 += cls(cl)
-        print(cl0)
-        cl = np.asarray(cl0)
-        alpha = 1 - cl / 100.
+    def set_conf(self, cl):
+        confidence_levels = [0.5, cl]
+
+        cl = np.asarray(confidence_levels)
+        alpha = 1.0 - cl
         r = -np.log(alpha)
-        self.cl = cl
+
+        self.confidence_level = cl
         self.r = r
+
         self.run_calcs()
 
     def calc(self, r=None):
@@ -286,6 +286,10 @@ class Weibayes:
         self.eta = etaseries.sum(1) ** (1 / self.beta)
 
     def calc_cdf(self):
+        """
+        calculates the cumulative distribution function, saves within self.cdf
+        :return: None
+        """
         tmin = 10 ** (np.floor(np.log10(self.icdf.min())) - 1)
         tmax = 10 ** (np.floor(np.log10(self.icdf.max())) + 1)
 
@@ -296,27 +300,29 @@ class Weibayes:
             self.cdf[n, :] = 1 - np.exp(- (self.cdf_x / eta) ** self.beta)
 
     def calc_icdf(self):
+        """
+        calculates the inverse cumulative distribution function
+        :return: None
+        """
         self.icdf_x = np.arange(.0001, .99, .0001)
         self.icdf = np.empty((len(self.eta), len(self.icdf_x)))
 
-        tmp = pd.DataFrame(index=self.icdf_x * 100)
+        tmp = pd.DataFrame(index=self.icdf_x)
         for n, eta in enumerate(self.eta):
             self.icdf[n, :] = eta * np.log(1. / (1 - self.icdf_x)) ** (1 / self.beta)
-            tmp[self.cl[n]] = self.icdf[n]
+            tmp[self.confidence_level[n]] = self.icdf[n]
 
-        self.blife = tmp.T
+        self.blife = tmp.T  # transpose
 
-        # self.blife = pd.DataFrame(self.icdf, index = self.icdf_x * 100,
-        #                          columns = ['cycles']).T
         self.blife.index.name = 'B'
 
-    def find_b(self, b):
+    def b_value(self, b):
         idxs = self.cdf <= 1
         bi = np.abs(self.cdf[idxs] - np.float(b) / 100.).argmin()
         return self.cdf_x[bi]
 
     def plot(self):
-        for n, i in enumerate(self.cl):
+        for n, i in enumerate(self.confidence_level):
             plt.semilogx(self.cdf_x, _ftolnln(self.cdf[n]))
         ax = plt.gca()
 
@@ -329,6 +335,10 @@ class Weibayes:
 
         plt.ylim(yt_lnF[1], yt_lnF[-1])
         plt.xlim(self.cdf_x.min(), self.cdf_x.max())
+
+        self.plot_annotate()
+        plt.show()
+
         # plt.ylabel('failure rate')
         # plt.xlabel('time')
 
@@ -337,29 +347,29 @@ class Weibayes:
         plt.text(.02, .95, 'beta: {:.0f}'.format(self.beta),
                  transform=ax.transAxes)
 
-        ff = ["{:.5g}, ", ] * len(self.cl)
+        ff = ["{:.5g}, ", ] * len(self.confidence_level)
         ff = "".join(ff).rstrip(", ")
         plt.text(.02, .85, 'eta: ' + ff.format(*self.eta),
                  transform=ax.transAxes)
 
-        ff2 = ["{:.0f}%, ", ] * len(self.cl)
-        ff2 = "".join(ff2).rstrip(", ")
-        plt.text(.02, .90, 'cl: ' + ff2.format(*self.cl),
+        confidence_strings = [str(c) for c in self.confidence_level]
+        confidence_string = ', '.join(confidence_strings)
+
+        plt.text(.02, .90, f'cl: {confidence_string}',
                  transform=ax.transAxes)
         if b:
             plt.text(.02, .8, 'B{}: '.format(b) + ff.format(
                 *self.blife[b].values.tolist()),
                      transform=ax.transAxes)
 
-    def print_b(self, bs=None):
-        if not bs:
-            bs = [1, 2, 5, 10]
-        print(self.blife[bs].T)
-
-    def display(self, b=None):
-        self.plot()
-        self.plot_annotate(b=b)
-        self.print_b()
+    def b_life(self, bs=(0.01, 0.02, 0.05, 0.10)):
+        """
+        Prints a table that contains the percent survival at confidence
+        :param bs:
+        :return:
+        """
+        string = str(self.blife[list(bs)].T)
+        return string
 
 
 # These functions need some work. I think they were supposed to calculation
