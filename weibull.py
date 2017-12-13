@@ -172,6 +172,54 @@ class Analysis:
         plt.plot(dat[0], dat[1], **kwargs)
 
 
+class Design:
+    """
+    The design class will determine the required test time required given the number of units
+    under test and the target cycles OR it will determine the number of units given the
+    test time and the target cycles.
+    """
+
+    def __init__(self, number_of_units, test_cycles, target_cycles,
+                 reliability=0.9, confidence_level=0.9, expected_beta=2.0):
+        """
+        Initializes the Design class
+        :param number_of_units: the expected number of units to enter the test
+        :param test_time: the expected test duration
+        :param target_cycles: the target number of cycles
+        :param reliability: the fraction of units still running after target_cycles
+        :param confidence_level: the fractional level of confidence
+        :param expected_beta: the anticipated level of beta (often worse-case)
+        """
+        if not 0.01 <= reliability <= 0.99:
+            raise ValueError('The reliability must be between 0.01 and 0.99')
+        if not 0.01 <= confidence_level <= 0.99:
+            raise ValueError('The confidence level must be between 0.01 and 0.99')
+
+        self.number_of_units = number_of_units
+        self.test_cycles = test_cycles
+        self.target_cycles = target_cycles
+        self.reliability = reliability
+        self.confidence_level = confidence_level
+        self.beta = expected_beta
+
+        print(f'The number of units required to prove {self.target_cycles} cycles at {self.reliability} reliability and a confidence level of {self.confidence_level} is {self._num_of_units():.01f}.')
+
+    def _num_of_units(self):
+        """
+        Design a test, calculating the number of units
+        required to run for the test duration / cycles
+        """
+
+        b = -np.log(self.reliability)
+        c = b ** (1. / self.beta)
+
+        ee = self.target_cycles / c
+
+        units = np.log(1 - self.confidence_level) / (-(self.test_cycles / ee) ** self.beta)
+
+        return units
+
+
 # weibull test setup
 
 # enhanced DE - 62 valve, 62 M cycles, B2, 95% CL with a target of 40 million
