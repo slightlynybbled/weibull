@@ -9,6 +9,11 @@ import statsmodels.api as sm
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+try:
+    import scipy.stats
+except ImportError:
+    logger.warn('Unable to import scipy.stats module - some functionality disabled')
+
 
 # convenience functions
 def _weibull_ticks(y, pos):
@@ -103,7 +108,7 @@ class Analysis:
             'eta': eta[0]
         }
 
-    def plot(self, file_name=None, **kwargs):
+    def plot(self, show=True, file_name=None, **kwargs):
         dat = self.data
 
         susp = any(dat['susp'])
@@ -128,11 +133,49 @@ class Analysis:
 
         ax.grid(True, which='both')
 
-        if file_name:
-            plt.savefig(file_name)
-        else:
+        if show:
             plt.show()
 
+        if file_name:
+            plt.savefig(file_name)
+
+    def pdf(self, show=True, file_name=None):
+        x = self._fits['line'][0]
+        y = scipy.stats.weibull_min.pdf(x, self.beta, 0, self.eta)
+
+        self._plot_prob(x, y, show, file_name, title='Probability Density Function')
+
+    def sf(self, show=True, file_name=None):
+        x = self._fits['line'][0]
+        y = scipy.stats.weibull_min.sf(x, self.beta, 0, self.eta)
+
+        self._plot_prob(x, y, show, file_name, title='Survival Function')
+
+    def hazard(self, show=True, file_name=None):
+        x = self._fits['line'][0]
+        y = scipy.stats.weibull_min.cdf(x, self.beta, 0, self.eta)
+
+        self._plot_prob(x, y, show, file_name, title='Hazard Function')
+
+    def cdf(self, show=True, file_name=None):
+        x = self._fits['line'][0]
+        y = scipy.stats.weibull_min.cdf(x, self.beta, 0, self.eta)
+
+        self._plot_prob(x, y, show, file_name, title='Cumulative Distribution Function')
+
+    def _plot_prob(self, x, y, show=True, file_name=None, title=None):
+        plt.plot(x, y)
+        ax = plt.gca()
+        ax.grid(True, which='both')
+
+        if title:
+            plt.title(title)
+
+        if show:
+            plt.show()
+
+        if file_name:
+            plt.savefig(file_name)
 
 class Design:
     """
