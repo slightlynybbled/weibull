@@ -11,6 +11,7 @@ logging.basicConfig(level=logging.INFO)
 
 try:
     import scipy.stats
+    from scipy.special import gamma
 except ImportError:
     logger.warn('Unable to import scipy.stats module - some functionality disabled')
 
@@ -163,6 +164,18 @@ class Analysis:
 
         self._plot_prob(x, y, show, file_name, title='Cumulative Distribution Function')
 
+    def fr(self, show=True, file_name=None):
+        """
+        plot failure rate as a function of cycles
+        :param show: True if the item is to be shown now, False if other elements to be added later
+        :param file_name: if file_name is stated, then the plot will be saved as a PNG
+        :return: None
+        """
+        x = self._fits['line'][0]
+        y = (self.beta / self.eta) * (x / self.eta) ** (self.beta - 1)
+
+        self._plot_prob(x, y, show, file_name, title='Failure Rate')
+
     def _plot_prob(self, x, y, show=True, file_name=None, title=None):
         plt.plot(x, y)
         ax = plt.gca()
@@ -176,6 +189,37 @@ class Analysis:
 
         if file_name:
             plt.savefig(file_name)
+
+    def b(self, percent_failed=10.0):
+        if not 0.1 <= percent_failed <= 99.0:
+            raise ValueError('portion_failed must be between 0.001 and 0.999 (inclusive)')
+
+        return scipy.stats.weibull_min.ppf(percent_failed / 100, self.beta, 0, self.eta)
+
+    @property
+    def mean(self):
+        """
+        mean life (mttf) is the integral of the reliability function between 0 and inf,
+
+        MTTF = eta * gamma_funct(1/beta + 1)
+
+        where gamma function is evaluated at 1/beta+1
+
+        :return:
+        """
+        return self.eta * gamma(1.0/self.beta + 1)
+
+    @property
+    def mttf(self):
+        return self.mean
+
+    @property
+    def median(self):
+        return scipy.stats.weibull_min.ppf(0.5, self.beta, 0, self.eta)
+
+    @property
+    def characteristic_life(self):
+        return self.eta
 
 class Design:
     """
