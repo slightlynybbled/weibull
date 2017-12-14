@@ -20,3 +20,4 @@ analysis = weibull.Analysis(fail_times)
 analysis.plot()
 
 print(f'beta: {analysis.beta}\teta: {analysis.eta}')
+print(f'{analysis.fit_test}')

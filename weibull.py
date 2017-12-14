@@ -32,6 +32,9 @@ class Analysis:
         # a suspension is when a unit is removed from test before it has failed
         dat['susp'] = [False if x else True for x in data]
 
+        if dat['susp'].all():
+            raise ValueError('data must contain at least one observed event')
+
         dat.sort_values('data', inplace=True)
         dat['rank'] = np.arange(1, len(dat) + 1)
         dat['f_rank'] = np.nan
@@ -52,6 +55,7 @@ class Analysis:
 
         self.beta = self._fits['beta']
         self.eta = self._fits['eta']
+        self.fit_test = self._fits['results'].summary()
 
     def _calc_adjrank(self):
         dat = self.data
@@ -71,35 +75,6 @@ class Analysis:
         """Calculate median rank using Bernard's approximation."""
         i = np.asarray(i)
         return (i - 0.3) / (len(i) + 0.4)
-
-    def plot(self, file_name=None, **kwargs):
-        dat = self.data
-
-        susp = any(dat['susp'])
-
-        if susp:
-            plt.semilogx(dat['data'], _ftolnln(dat['adjm_rank']), 'o')
-        else:
-            plt.semilogx(dat['data'], _ftolnln(dat['med_rank']), 'o')
-
-        self.plot_fits(**kwargs)
-
-        ax = plt.gca()
-        formatter = mpl.ticker.FuncFormatter(_weibull_ticks)
-        ax.yaxis.set_major_formatter(formatter)
-        yt_F = np.array([0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5,
-                         0.6, 0.7, 0.8, 0.9, 0.95, 0.99])
-        yt_lnF = _ftolnln(yt_F)
-        plt.yticks(yt_lnF)
-
-        plt.ylim(_ftolnln([.01, .99]))
-
-        ax.grid(True, which='both')
-
-        if file_name:
-            plt.savefig(file_name)
-        else:
-            plt.show()
 
     def _fit(self):
         """
@@ -128,9 +103,35 @@ class Analysis:
             'eta': eta[0]
         }
 
-    def plot_fits(self, **kwargs):
+    def plot(self, file_name=None, **kwargs):
+        dat = self.data
+
+        susp = any(dat['susp'])
+
+        if susp:
+            plt.semilogx(dat['data'], _ftolnln(dat['adjm_rank']), 'o')
+        else:
+            plt.semilogx(dat['data'], _ftolnln(dat['med_rank']), 'o')
+
         dat = self._fits['line']
         plt.plot(dat[0], dat[1], **kwargs)
+
+        ax = plt.gca()
+        formatter = mpl.ticker.FuncFormatter(_weibull_ticks)
+        ax.yaxis.set_major_formatter(formatter)
+        yt_F = np.array([0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5,
+                         0.6, 0.7, 0.8, 0.9, 0.95, 0.99])
+        yt_lnF = _ftolnln(yt_F)
+        plt.yticks(yt_lnF)
+
+        plt.ylim(_ftolnln([.01, .99]))
+
+        ax.grid(True, which='both')
+
+        if file_name:
+            plt.savefig(file_name)
+        else:
+            plt.show()
 
 
 class Design:
