@@ -1,12 +1,6 @@
-# Temporary Disclaimer
-
-I (slightlynybbled) forked this repository - including the readme - and I am currently modifying the library along with the readme to improve useability.  The below contains artifacts from the original readme that were written by the original author.  Where I have modified the library, I have modified the readme to reflect those changes.
-
-As I advance in refactoring the library into a more complete and useable package, I will eventually replace all of the text of the readme with appropriate substitutions and remove this temporary disclaimer.
-
 # Weibull Reliability Overview
 
-This is a rough collection of Weibull analysis and test design classes.  The three primary classes are the `Analysis`, `Design`, and `Weibayes`.
+This is a rough collection of Weibull analysis and test design classes.  The three primary classes are the `Analysis`, `Design`, and `Weibayes`.  Most users will want to use the `Analysis` and `Design` classes.
 
 ## Weibull Analysis
 
