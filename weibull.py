@@ -95,6 +95,8 @@ class Analysis:
 
         plt.ylim(_ftolnln([.01, .99]))
 
+        ax.grid(True, which='both')
+
         if file_name:
             plt.savefig(file_name)
         else:
