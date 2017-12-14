@@ -1,3 +1,5 @@
 .idea/
 __pycache__/
 weibull.egg-info/
+build/
+dist/
