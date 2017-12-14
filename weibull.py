@@ -7,7 +7,7 @@ import matplotlib as mpl
 import statsmodels.api as sm
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 # convenience functions
@@ -21,7 +21,7 @@ def _ftolnln(f):
 
 class Analysis:
     """
-    Based on life data, calculates a 2-parameter weibull _fit
+    Based on life data, calculates a 2-parameter weibull fit
     """
     def __init__(self, data):
         self._fits = {}
@@ -38,20 +38,20 @@ class Analysis:
         dat.loc[dat['susp'] == False, 'f_rank'] = np.arange(1,
                                                             len(dat[dat['susp'] == False]) + 1)
         di = dat['susp'] == False
-        dat.loc[di, 'med_rank'] = self.med_ra(dat.loc[di, 'f_rank'])
+        dat.loc[di, 'med_rank'] = self._med_ra(dat.loc[di, 'f_rank'])
         dat['rev_rank'] = dat['rank'].values[::-1]
 
         self.data = dat
-        logger.debug('\n{}'.format(self.data))
+        logger.debug(f'\n{self.data}')
+
         self._calc_adjrank()
         self._fit()
 
-        fit = 'syx' if any(dat['susp']) else 'yx'
-        logger.info('beta: {:.2f}, eta: {:.2f}'.format(
-                    self._fits[fit]['beta'], self._fits[fit]['eta']))
+        logger.debug('beta: {:.2f}, eta: {:.2f}'.format(
+                    self._fits['beta'], self._fits['eta']))
 
-        self.beta = self._fits[fit]['beta']
-        self.eta = self._fits[fit]['eta']
+        self.beta = self._fits['beta']
+        self.eta = self._fits['eta']
 
     def _calc_adjrank(self):
         dat = self.data
@@ -65,9 +65,9 @@ class Analysis:
                   (len(dat) + 1.)) / (fdat.loc[n, 'rev_rank'] + 1)
             padj.append(pn)
             dat.loc[n, 'adj_rank'] = pn
-        dat['adjm_rank'] = self.med_ra(dat['adj_rank'])
+        dat['adjm_rank'] = self._med_ra(dat['adj_rank'])
 
-    def med_ra(self, i):
+    def _med_ra(self, i):
         """Calculate median rank using Bernard's approximation."""
         i = np.asarray(i)
         return (i - 0.3) / (len(i) + 0.4)
@@ -76,14 +76,13 @@ class Analysis:
         dat = self.data
 
         susp = any(dat['susp'])
-        fit = 'syx' if susp else 'yx'
 
         if susp:
             plt.semilogx(dat['data'], _ftolnln(dat['adjm_rank']), 'o')
         else:
             plt.semilogx(dat['data'], _ftolnln(dat['med_rank']), 'o')
 
-        self.plot_fits(fit, **kwargs)
+        self.plot_fits(**kwargs)
 
         ax = plt.gca()
         formatter = mpl.ticker.FuncFormatter(_weibull_ticks)
@@ -110,50 +109,8 @@ class Analysis:
         with suspensions (prefixed by 's').
         """
         x0 = np.log(self.data.dropna()['data'].values)
-        X = sm.add_constant(x0)
-        Y = _ftolnln(self.data.dropna()['med_rank'])
-        model = sm.OLS(Y, X)
-        results = model.fit()
-
-        xx = np.logspace(0, np.log(1000), 100, base=np.e)
-        XX = sm.add_constant(np.log(xx))
-        YY = results.predict(XX)
-        eta = np.exp(-results.params[0] / results.params[1])
-
-        self._fits['xy'] = {'results': results, 'model': model,
-                           'line': np.row_stack([xx, YY]),
-                           'beta': results.params[1],
-                           'eta': eta}
-
-        Yx = sm.add_constant(Y)
-        model = sm.OLS(x0, Yx)
-        results = model.fit()
-
-        yy = _ftolnln(np.linspace(.001, .999, 100))
-        YY = sm.add_constant(yy)
-        XX = np.exp(results.predict(YY))
-        eta = np.exp(results.predict([1, 0]))
-
-        self._fits['yx'] = {'results': results, 'model': model,
-                           'line': np.row_stack([XX, yy]),
-                           'beta': 1 / results.params[1],
-                           'eta': eta[0]}
-
-        x0 = np.log(self.data.dropna()['data'].values)
-        X = sm.add_constant(x0)
         Y = _ftolnln(self.data.dropna()['adjm_rank'])
-        model = sm.OLS(Y, X)
-        results = model.fit()
-
-        xx = np.logspace(0, np.log(1000), 100, base=np.e)
-        XX = sm.add_constant(np.log(xx))
-        YY = results.predict(XX)
-        eta = np.exp(-results.params[0] / results.params[1])
-
-        self._fits['sxy'] = {'results': results, 'model': model,
-                            'line': np.row_stack([xx, YY]),
-                            'beta': results.params[1],
-                            'eta': eta}
+        yy = _ftolnln(np.linspace(.001, .999, 100))
 
         Yx = sm.add_constant(Y)
         model = sm.OLS(x0, Yx)
@@ -163,14 +120,16 @@ class Analysis:
         XX = np.exp(results.predict(YY))
         eta = np.exp(results.predict([1, 0]))
 
-        self._fits['syx'] = {'results': results, 'model': model,
-                            'line': np.row_stack([XX, yy]),
-                            'beta': 1 / results.params[1],
-                            'eta': eta[0]}
+        self._fits = {
+            'results': results,
+            'model': model,
+            'line': np.row_stack([XX, yy]),
+            'beta': 1 / results.params[1],
+            'eta': eta[0]
+        }
 
-    def plot_fits(self, fit='syx', **kwargs):
-        dat = self._fits[fit]['line']
-
+    def plot_fits(self, **kwargs):
+        dat = self._fits['line']
         plt.plot(dat[0], dat[1], **kwargs)
 
 
