@@ -1,6 +1,22 @@
+# Purpose
+
+This package is intended to ease reliability analysis using the Weibull distribution, which is the most common method of reliability analysis.
+
+# Installation
+
+Ideally, you should be able to `pip install weibull` and simply be finished.  This package is a pure-python package, so it should work on any os.  Unfortunately, this package utilizes other packages which may be more difficult to install.  Please consult package documentation for more details.
+
+This user had the most issues installing `statsmodels` in a Windows 10 environment.  Other package dependencies - `numpy`, `pandas`, and `matplotlib` - installed without issue.
+
+If you are having installation issues, perhaps try the [Anaconda](https://www.anaconda.com/download/) distribution!  As I understand it, they have solved most of these installation problems for difficult packages!
+
 # Weibull Reliability Overview
 
-This is a rough collection of Weibull analysis and test design classes.  The three primary classes are the `Analysis`, `Design`, and `Weibayes`.  Most users will want to use the `Analysis` and `Design` classes.
+The three primary classes are the `Analysis`, `Design`, and `Weibayes`.  Most users will want to use the `Analysis` and `Design` classes.
+
+ - `Analysis` - use this when you have real-world or simulated data to determine the beta and eta values
+ - `Design` - use this to determine the test time and number of units to run
+ - `Weibayes` - basic weibayes methods implemented
 
 ## Weibull Analysis
 
@@ -139,4 +155,4 @@ We can further plot the data using `weibayes.plot()` resulting in:
 
 Initial work on this repository was done by user [tgray](https://github.com/tgray).  You can still peruse the [original repository](https://github.com/tgray/weibull).
 
-It would be highly useful to have different estimation methods and confidence bounds within the analysis.  If you are feeling froggy, please, submit your pull request!
+It would be highly useful to have different estimation methods and confidence bounds within the `Analysis` class.  If you are feeling froggy, please, submit your pull request!
