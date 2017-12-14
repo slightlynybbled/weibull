@@ -4,23 +4,17 @@ I (slightlynybbled) forked this repository - including the readme - and I am cur
 
 As I advance in refactoring the library into a more complete and useable package, I will eventually replace all of the text of the readme with appropriate substitutions and remove this temporary disclaimer.
 
-# Weibull Reliability Analysis
+# Weibull Reliability Overview
 
-This is a rough collection of Weibull analysis routines.  I make no claim to the accuracy.
+This is a rough collection of Weibull analysis and test design classes.  The three primary classes are the `Analysis`, `Design`, and `Weibayes`.
 
-Routines are for low sample sizes.  I believe at large sample sizes, maximum likelihood methods are more accurate.  The Weibull fits here are done as Y on X and X on Y regressions - the equivalent to graphing on Weibull paper.  The class can handle right-censored data (data in which the test was stopped before all units have experienced failure).
+## Weibull Analysis
 
-A class for Weibayes analysis is also included.
+The most fundamental weibull analysis is to calculate the values of beta and eta for a given list of life data.  The curve fit can deal with censored as well as uncensored data.  
 
-Also included is are a few methods to determine test time or number of samples.
+### Considerations
 
-I wrote this while working at a manufacturing company.  Before I could polish it up, I left for a completely different job.  I doubt I will use this again, but I wanted to pull the work in progress out of the iPython notebook where it was and stick it in a file.  As a result, there are some duplicate functions in the file.  I couldn't be bothered to clean those up...
-
-# Weibull Basic Fitting
-
-The most fundamental weibull analysis is to calculate the values of beta and eta for a given list of life data.
-
-Censored data can be fit as well as uncensored data.  Four fits are performed:
+The basic method used within the `Analysis` class is the electronic equivalent of curve fitting on weibull paper.  In short, it uses regressions to determine the beta and eta values.  This works quite well for small sample sizes, but other methods - such as maximum likelihood - may yield more accurate results as sample size increases.
 
 A basic example is shown here, but more complete examples may be found within the [examples](examples/) directory.
 
@@ -40,7 +34,37 @@ A basic example is shown here, but more complete examples may be found within th
 
 ![weibull _fit](images/weibull-fit.png)
 
-# Test design
+The plot should give you a good visual indication of the fit, but a more quantitative analysis can be obtained by calling the `fit_test` property:
+
+    analysis.fit_test
+    
+                                OLS Regression Results                            
+    ==============================================================================
+    Dep. Variable:                      y   R-squared:                       0.958
+    Model:                            OLS   Adj. R-squared:                  0.916
+    Method:                 Least Squares   F-statistic:                     22.82
+    Date:                Thu, 14 Dec 2017   Prob (F-statistic):              0.131
+    Time:                        10:31:56   Log-Likelihood:                 2.7472
+    No. Observations:                   3   AIC:                            -1.494
+    Df Residuals:                       1   BIC:                            -3.297
+    Df Model:                           1                                         
+    Covariance Type:            nonrobust                                         
+    ==============================================================================
+                     coef    std err          t      P>|t|      [0.025      0.975]
+    ------------------------------------------------------------------------------
+    const          9.0268      0.314     28.786      0.022       5.042      13.011
+    x1             0.7647      0.160      4.777      0.131      -1.269       2.799
+    ==============================================================================
+    Omnibus:                          nan   Durbin-Watson:                   2.947
+    Prob(Omnibus):                    nan   Jarque-Bera (JB):                0.475
+    Skew:                           0.623   Prob(JB):                        0.788
+    Kurtosis:                       1.500   Cond. No.                         7.87
+    ==============================================================================
+    
+    Warnings:
+    [1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+
+## Test design
 
 The `Design` class is to be utilized for two scenarios:
 
@@ -71,7 +95,7 @@ Shown are two example calculations for a target lifetime of 10000 hours with a r
     print(f'Minimum number of units for 10000 hour run: {designer.num_of_units(test_cycles=10000)}')
     print(f'Minimum hours for 20 units: {designer.num_of_cycles(num_of_units=20)}')
 
-# Weibayes
+## Weibayes
 
 Use Weibayes analysis to assist with designing your test.
 
@@ -120,3 +144,5 @@ We can further plot the data using `weibayes.plot()` resulting in:
 # Contributions
 
 Initial work on this repository was done by user [tgray](https://github.com/tgray).  You can still peruse the [original repository](https://github.com/tgray/weibull).
+
+It would be highly useful to have different estimation methods and confidence bounds within the analysis.  If you are feeling froggy, please, submit your pull request!
