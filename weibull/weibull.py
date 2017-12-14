@@ -109,7 +109,7 @@ class Analysis:
             'eta': eta[0]
         }
 
-    def plot(self, show=True, file_name=None, **kwargs):
+    def probplot(self, show=True, file_name=None, **kwargs):
         dat = self.data
 
         susp = any(dat['susp'])
@@ -166,9 +166,9 @@ class Analysis:
 
     def fr(self, show=True, file_name=None):
         """
-        plot failure rate as a function of cycles
+        probplot failure rate as a function of cycles
         :param show: True if the item is to be shown now, False if other elements to be added later
-        :param file_name: if file_name is stated, then the plot will be saved as a PNG
+        :param file_name: if file_name is stated, then the probplot will be saved as a PNG
         :return: None
         """
         x = self._fits['line'][0]

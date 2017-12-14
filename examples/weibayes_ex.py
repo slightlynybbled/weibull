@@ -11,7 +11,7 @@ weibayes = weibull.Weibayes(run_times_desired, confidence_level=0.95, beta=2)
 print(f'B2 life: {weibayes.b(2)}')
 print(f'B10 life: {weibayes.b(10)}')
 
-# plot the confidences for each (note that the Bx
+# probplot the confidences for each (note that the Bx
 # values may be read from the Y axis)
 weibayes.plot(file_name='weibayes.png')
 weibayes.plot(0.5)

@@ -26,6 +26,8 @@ The most fundamental weibull analysis is to calculate the values of beta and eta
 
 The basic method used within the `Analysis` class is the electronic equivalent of curve fitting on weibull paper.  In short, it uses regressions to determine the beta and eta values.  This works quite well for small sample sizes, but other methods - such as maximum likelihood - may yield more accurate results as sample size increases.
 
+### Fitting
+
 A basic example is shown here, but more complete examples may be found within the [examples](examples/) directory.
 
     import weibull
@@ -38,13 +40,13 @@ A basic example is shown here, but more complete examples may be found within th
     fail_times[6] = 3043.4
     
     analysis = weibull.Analysis(fail_times)
-    analysis.plot()
+    analysis.probplot()
     
     print(f'beta: {analysis.beta}\teta: {analysis.eta}')
 
 ![weibull _fit](images/weibull-fit.png)
 
-The plot should give you a good visual indication of the fit, but a more quantitative analysis can be obtained by calling the `fit_test` property:
+The `probplot` should give you a good visual indication of the fit, but a more quantitative analysis can be obtained by calling the `fit_test` property:
 
     analysis.fit_test
     
@@ -73,6 +75,34 @@ The plot should give you a good visual indication of the fit, but a more quantit
     
     Warnings:
     [1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+    
+### Distribution Plotting 
+
+In addition, it is also possible to plot each of the following distributions:
+
+ - `analysis.pdf(show=True, file_name=None)` - probability density function
+ - `analysis.sf(show=True, file_name=None)` - survival function
+ - `analysis.hazard(show=True, file_name=None)` - hazard function
+ - `analysis.cdf(show=True, file_name=None)` - cumulative density function (hazard function)
+ - `analysis.fr(show=True, file_name=None)` - failure rate
+ 
+### Summary Data
+
+Some summary data may be accessed using properties:
+
+ - `analysis.mttf` - mean time to failure (MTTF)
+ - `analysis.mean` - mean (corresponds to MTTF)
+ - `analysis.median` - the median life
+ - `analysis.characteristic_life` - the characteristic life (corresponds to eta)
+ 
+### B Life
+
+A B-life is the operating time until a percentage of the units have failed.  For instance, a B10 life is the life of a product until 10% of the units have failed.  To calculate the "B life", you may use the `b()` method with a parameter being the b life number:
+
+    $> analysis.b(2)
+    451.37
+    $> analysis.b(10)
+    1535.17
 
 ## Test design
 

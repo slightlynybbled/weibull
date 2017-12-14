@@ -17,7 +17,7 @@ fail_times = [
 
 # this is where the actual analysis occurs
 analysis = weibull.Analysis(fail_times)
-analysis.plot()
+analysis.probplot()
 analysis.pdf()
 analysis.sf()
 analysis.hazard()
