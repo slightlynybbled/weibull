@@ -48,6 +48,8 @@ A basic example is shown here, but more complete examples may be found within th
     fail_times[6] = 3043.4
     
     analysis = weibull.Analysis(fail_times, unit='hour')
+    analysis.fit()
+    
     analysis.probplot()
     
     print(f'beta: {analysis.beta}\teta: {analysis.eta}')
@@ -65,6 +67,8 @@ For a more accurate beta value, specify fail times and run the analysis with a s
                  False, False, False, True, True]
     
     analysis = weibull.Analysis(fail_times, suspended=suspended, unit='hour')
+    analysis.fit()
+    
     print(f'beta: {analysis.beta}\teta: {analysis.eta}')
     analysis.probplot()
     

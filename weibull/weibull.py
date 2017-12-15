@@ -10,7 +10,7 @@ import statsmodels.api as sm
 rcParams.update({'figure.autolayout': True})
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 try:
     import scipy.stats
@@ -64,9 +64,6 @@ class Analysis:
         logger.debug(f'\n{self.data}')
 
         self._calc_adjrank()
-        self._fit()
-
-        logger.debug(f'beta: {self.beta:.2f}, eta: {self.eta:.2f}')
 
     def _calc_adjrank(self):
         dat = self.data
@@ -90,18 +87,17 @@ class Analysis:
 
         return med_rank
 
-    def _fit(self):
+    def fit(self):
         """
         Fit data.
-        
-        There are four fits.  X on Y and Y on X for data with no suspensions or
-        with suspensions (prefixed by 's').
         """
         x0 = np.log(self.data.dropna()['data'].values)
         Y = _ftolnln(self.data.dropna()['adjm_rank'])
+
         yy = _ftolnln(np.linspace(.001, .999, 100))
 
         Yx = sm.add_constant(Y)
+
         model = sm.OLS(x0, Yx)
         results = model.fit()
 
@@ -112,20 +108,22 @@ class Analysis:
         self.beta = 1 / results.params[1]
         self.eta = eta[0]
 
+        logger.debug(f'beta: {self.beta:.2f}, eta: {self.eta:.2f}')
+
         self._fits = {
             'results': results,
             'line': np.row_stack([XX, yy])
         }
 
-    def probplot(self, show=True, file_name=None, **kwargs):
-        dat = self.data
+        return results
 
-        susp = any(dat['susp'])
+    def probplot(self, show=True, file_name=None, **kwargs):
+        susp = any(self.data['susp'])
 
         if susp:
-            plt.semilogx(dat['data'], _ftolnln(dat['adjm_rank']), 'o')
+            plt.semilogx(self.data['data'], _ftolnln(self.data['adjm_rank']), 'o')
         else:
-            plt.semilogx(dat['data'], _ftolnln(dat['med_rank']), 'o')
+            plt.semilogx(self.data['data'], _ftolnln(self.data['med_rank']), 'o')
 
         dat = self._fits['line']
         plt.plot(dat[0], dat[1], **kwargs)
@@ -248,7 +246,7 @@ class Analysis:
 
     @property
     def fit_test(self):
-        return self._fits['results'].summary()
+        return self.fit().summary()
 
 class Design:
     """
