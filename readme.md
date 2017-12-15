@@ -33,10 +33,9 @@ A basic example is shown here, but more complete examples may be found within th
     import weibull
     
     # Take real data and supply it for the failure times,
-    # leaving right-censored data as None for units that
-    # have not failed yet.  This will yield a conservative
-    # estimate as the currently accumulating run time
-    # will not be taken into account
+    # leaving right-censored data as None for conservative
+    # valus or supply a current run time and a censored 
+    # array for better estimates.
     fail_times = [None] * 10
     fail_times[7] = 1034.5
     fail_times[8] = 2550.9
