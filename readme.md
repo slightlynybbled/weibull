@@ -2,6 +2,12 @@
 
 This package is intended to ease reliability analysis using the Weibull distribution, which is the most common method of reliability analysis.
 
+# Project Maturity
+
+I am making every effort to ensure that every release is technically sound; however, it is possible that something is technically incorrect!  It is up to the user to verify functionality for themselves.
+
+In addition, the interface is still maturing as I run it through different use cases and there will likely be breaking changes until the 1.0 release.  There will not be any breaking changes until major release numbers after that.
+
 # Installation
 
 Ideally, you should be able to `pip install weibull` and simply be finished.  This package is a pure-python package, so it should work on any os.  Unfortunately, this package utilizes other packages which may be more difficult to install.  Please consult package documentation for more details.
@@ -62,7 +68,7 @@ For a more accurate beta value, specify fail times and run the analysis with a s
     print(f'beta: {analysis.beta}\teta: {analysis.eta}')
     analysis.probplot()
     
-![weibull _fit](images/weibull-fit.png)
+![weibull fit](images/weibull-fit.png)
 
 The `probplot` should give you a good visual indication of the fit, but a more quantitative analysis can be obtained by calling the `fit_test` property:
 
