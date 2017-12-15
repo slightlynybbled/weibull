@@ -17,7 +17,7 @@ except ImportError:
 
 
 # convenience functions
-def _weibull_ticks(y, pos):
+def _weibull_ticks(y, _):
     return "{:.0f}%".format(100 * (1 - np.exp(-np.exp(y))))
 
 
@@ -57,15 +57,12 @@ class Analysis:
         self.data = dat
         logger.debug(f'\n{self.data}')
 
+        self.beta, self.eta = None, None
+
         self._calc_adjrank()
         self._fit()
 
-        logger.debug('beta: {:.2f}, eta: {:.2f}'.format(
-                    self._fits['beta'], self._fits['eta']))
-
-        self.beta = self._fits['beta']
-        self.eta = self._fits['eta']
-        self.fit_test = self._fits['results'].summary()
+        logger.debug(f'beta: {self.beta:.2f}, eta: {self.eta:.2f}')
 
     def _calc_adjrank(self):
         dat = self.data
@@ -108,12 +105,12 @@ class Analysis:
         XX = np.exp(results.predict(YY))
         eta = np.exp(results.predict([1, 0]))
 
+        self.beta = 1 / results.params[1]
+        self.eta = eta[0]
+
         self._fits = {
             'results': results,
-            'model': model,
-            'line': np.row_stack([XX, yy]),
-            'beta': 1 / results.params[1],
-            'eta': eta[0]
+            'line': np.row_stack([XX, yy])
         }
 
     def probplot(self, show=True, file_name=None, **kwargs):
@@ -227,6 +224,10 @@ class Analysis:
     @property
     def characteristic_life(self):
         return self.eta
+
+    @property
+    def fit_test(self):
+        return self._fits['results'].summary()
 
 class Design:
     """
