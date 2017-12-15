@@ -41,12 +41,10 @@ A basic example is shown here, but more complete examples may be found within th
     fail_times[8] = 2550.9
     fail_times[6] = 3043.4
     
-    analysis = weibull.Analysis(fail_times)
+    analysis = weibull.Analysis(fail_times, unit='hour')
     analysis.probplot()
     
     print(f'beta: {analysis.beta}\teta: {analysis.eta}')
-
-![weibull _fit](images/weibull-fit.png)
 
 For a more accurate beta value, specify fail times and run the analysis with a separate `suspended` column.  This takes into account the accumulated run time since the last failure and will generally improve beta values and overall cycles:
 
@@ -60,7 +58,11 @@ For a more accurate beta value, specify fail times and run the analysis with a s
     suspended = [True, True, True, True, True,
                  False, False, False, True, True]
     
-    analysis = weibull.Analysis(fail_times, suspended=suspended)
+    analysis = weibull.Analysis(fail_times, suspended=suspended, unit='hour')
+    print(f'beta: {analysis.beta}\teta: {analysis.eta}')
+    analysis.probplot()
+    
+![weibull _fit](images/weibull-fit.png)
 
 The `probplot` should give you a good visual indication of the fit, but a more quantitative analysis can be obtained by calling the `fit_test` property:
 

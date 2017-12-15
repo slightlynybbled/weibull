@@ -12,7 +12,7 @@ fail_times[6] = 3043.4
 suspended = [True, True, True, True, True,
              False, False, False, True, True]
 
-analysis = weibull.Analysis(fail_times, suspended=suspended)
+analysis = weibull.Analysis(fail_times, suspended=suspended, unit='hour')
 
 analysis.probplot(file_name='weibull-fit.png')  # option to save as an image
 analysis.pdf()

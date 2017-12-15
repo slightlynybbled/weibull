@@ -4,7 +4,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from matplotlib import rcParams
 import statsmodels.api as sm
+
+rcParams.update({'figure.autolayout': True})
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -29,8 +32,11 @@ class Analysis:
     """
     Based on life data, calculates a 2-parameter weibull fit
     """
-    def __init__(self, data, suspended=None):
+    def __init__(self, data, suspended=None, unit='cycle'):
         self._fits = {}
+        self.x_unit = unit
+
+        self.beta, self.eta = None, None
 
         dat = pd.DataFrame({'data': data})
         dat.index = np.arange(1, len(dat) + 1)
@@ -56,8 +62,6 @@ class Analysis:
 
         self.data = dat
         logger.debug(f'\n{self.data}')
-
-        self.beta, self.eta = None, None
 
         self._calc_adjrank()
         self._fit()
@@ -126,6 +130,9 @@ class Analysis:
         dat = self._fits['line']
         plt.plot(dat[0], dat[1], **kwargs)
 
+        plt.xlabel(f'{self.x_unit}s')
+        plt.ylabel('% failed')
+
         ax = plt.gca()
         formatter = mpl.ticker.FuncFormatter(_weibull_ticks)
         ax.yaxis.set_major_formatter(formatter)
@@ -138,35 +145,43 @@ class Analysis:
 
         ax.grid(True, which='both')
 
-        if show:
-            plt.show()
-
         if file_name:
             plt.savefig(file_name)
+
+        if show:
+            plt.show()
 
     def pdf(self, show=True, file_name=None):
         x = self._fits['line'][0]
         y = scipy.stats.weibull_min.pdf(x, self.beta, 0, self.eta)
 
-        self._plot_prob(x, y, show, file_name, title='Probability Density Function')
+        self._plot_prob(x, y, show, file_name,
+                        title='Probability Density Function',
+                        y_label=f'probability/{self.x_unit}')
 
     def sf(self, show=True, file_name=None):
         x = self._fits['line'][0]
         y = scipy.stats.weibull_min.sf(x, self.beta, 0, self.eta)
 
-        self._plot_prob(x, y, show, file_name, title='Survival Function')
+        self._plot_prob(x, y, show, file_name,
+                        title='Survival Function',
+                        y_label=f'probability of survival')
 
     def hazard(self, show=True, file_name=None):
         x = self._fits['line'][0]
         y = scipy.stats.weibull_min.cdf(x, self.beta, 0, self.eta)
 
-        self._plot_prob(x, y, show, file_name, title='Hazard Function')
+        self._plot_prob(x, y, show, file_name,
+                        title='Hazard Function',
+                        y_label='probability of failure')
 
     def cdf(self, show=True, file_name=None):
         x = self._fits['line'][0]
         y = scipy.stats.weibull_min.cdf(x, self.beta, 0, self.eta)
 
-        self._plot_prob(x, y, show, file_name, title='Cumulative Distribution Function')
+        self._plot_prob(x, y, show, file_name,
+                        title='Cumulative Distribution Function',
+                        y_label='probability of failure')
 
     def fr(self, show=True, file_name=None):
         """
@@ -178,21 +193,27 @@ class Analysis:
         x = self._fits['line'][0]
         y = (self.beta / self.eta) * (x / self.eta) ** (self.beta - 1)
 
-        self._plot_prob(x, y, show, file_name, title='Failure Rate')
+        self._plot_prob(x, y, show, file_name,
+                        title='Failure Rate',
+                        y_label=f'failures/{self.x_unit}')
 
-    def _plot_prob(self, x, y, show=True, file_name=None, title=None):
+    def _plot_prob(self, x, y, show=True, file_name=None, title=None, y_label='probability'):
         plt.plot(x, y)
+
+        plt.xlabel(f'{self.x_unit}s')
+        plt.ylabel(y_label)
+
         ax = plt.gca()
         ax.grid(True, which='both')
 
         if title:
             plt.title(title)
 
-        if show:
-            plt.show()
-
         if file_name:
             plt.savefig(file_name)
+
+        if show:
+            plt.show()
 
     def b(self, percent_failed=10.0):
         if not 0.1 <= percent_failed <= 99.0:
