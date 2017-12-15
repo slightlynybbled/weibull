@@ -29,14 +29,18 @@ class Analysis:
     """
     Based on life data, calculates a 2-parameter weibull fit
     """
-    def __init__(self, data):
+    def __init__(self, data, suspended=None):
         self._fits = {}
 
         dat = pd.DataFrame({'data': data})
         dat.index = np.arange(1, len(dat) + 1)
 
         # a suspension is when a unit is removed from test before it has failed
-        dat['susp'] = [False if x else True for x in data]
+        if not suspended:
+            dat['susp'] = [False if x else True for x in data]
+            dat['data'].fillna(dat['data'].max(), inplace=True)
+        else:
+            dat['susp'] = suspended
 
         if dat['susp'].all():
             raise ValueError('data must contain at least one observed event')
@@ -75,12 +79,15 @@ class Analysis:
                   (len(dat) + 1.)) / (fdat.loc[n, 'rev_rank'] + 1)
             padj.append(pn)
             dat.loc[n, 'adj_rank'] = pn
+
         dat['adjm_rank'] = self._med_ra(dat['adj_rank'])
 
     def _med_ra(self, i):
         """Calculate median rank using Bernard's approximation."""
         i = np.asarray(i)
-        return (i - 0.3) / (len(i) + 0.4)
+        med_rank = (i - 0.3) / (len(i) + 0.4)
+
+        return med_rank
 
     def _fit(self):
         """
