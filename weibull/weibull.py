@@ -7,7 +7,13 @@ import matplotlib as mpl
 import statsmodels.api as sm
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
+
+try:
+    import scipy.stats
+    from scipy.special import gamma
+except ImportError:
+    logger.warn('Unable to import scipy.stats module - some functionality disabled')
 
 
 # convenience functions
@@ -21,7 +27,7 @@ def _ftolnln(f):
 
 class Analysis:
     """
-    Based on life data, calculates a 2-parameter weibull _fit
+    Based on life data, calculates a 2-parameter weibull fit
     """
     def __init__(self, data):
         self._fits = {}
@@ -32,26 +38,30 @@ class Analysis:
         # a suspension is when a unit is removed from test before it has failed
         dat['susp'] = [False if x else True for x in data]
 
+        if dat['susp'].all():
+            raise ValueError('data must contain at least one observed event')
+
         dat.sort_values('data', inplace=True)
         dat['rank'] = np.arange(1, len(dat) + 1)
         dat['f_rank'] = np.nan
         dat.loc[dat['susp'] == False, 'f_rank'] = np.arange(1,
                                                             len(dat[dat['susp'] == False]) + 1)
         di = dat['susp'] == False
-        dat.loc[di, 'med_rank'] = self.med_ra(dat.loc[di, 'f_rank'])
+        dat.loc[di, 'med_rank'] = self._med_ra(dat.loc[di, 'f_rank'])
         dat['rev_rank'] = dat['rank'].values[::-1]
 
         self.data = dat
-        logger.debug('\n{}'.format(self.data))
+        logger.debug(f'\n{self.data}')
+
         self._calc_adjrank()
         self._fit()
 
-        fit = 'syx' if any(dat['susp']) else 'yx'
-        logger.info('beta: {:.2f}, eta: {:.2f}'.format(
-                    self._fits[fit]['beta'], self._fits[fit]['eta']))
+        logger.debug('beta: {:.2f}, eta: {:.2f}'.format(
+                    self._fits['beta'], self._fits['eta']))
 
-        self.beta = self._fits[fit]['beta']
-        self.eta = self._fits[fit]['eta']
+        self.beta = self._fits['beta']
+        self.eta = self._fits['eta']
+        self.fit_test = self._fits['results'].summary()
 
     def _calc_adjrank(self):
         dat = self.data
@@ -65,25 +75,52 @@ class Analysis:
                   (len(dat) + 1.)) / (fdat.loc[n, 'rev_rank'] + 1)
             padj.append(pn)
             dat.loc[n, 'adj_rank'] = pn
-        dat['adjm_rank'] = self.med_ra(dat['adj_rank'])
+        dat['adjm_rank'] = self._med_ra(dat['adj_rank'])
 
-    def med_ra(self, i):
+    def _med_ra(self, i):
         """Calculate median rank using Bernard's approximation."""
         i = np.asarray(i)
         return (i - 0.3) / (len(i) + 0.4)
 
-    def plot(self, file_name=None, **kwargs):
+    def _fit(self):
+        """
+        Fit data.
+        
+        There are four fits.  X on Y and Y on X for data with no suspensions or
+        with suspensions (prefixed by 's').
+        """
+        x0 = np.log(self.data.dropna()['data'].values)
+        Y = _ftolnln(self.data.dropna()['adjm_rank'])
+        yy = _ftolnln(np.linspace(.001, .999, 100))
+
+        Yx = sm.add_constant(Y)
+        model = sm.OLS(x0, Yx)
+        results = model.fit()
+
+        YY = sm.add_constant(yy)
+        XX = np.exp(results.predict(YY))
+        eta = np.exp(results.predict([1, 0]))
+
+        self._fits = {
+            'results': results,
+            'model': model,
+            'line': np.row_stack([XX, yy]),
+            'beta': 1 / results.params[1],
+            'eta': eta[0]
+        }
+
+    def probplot(self, show=True, file_name=None, **kwargs):
         dat = self.data
 
         susp = any(dat['susp'])
-        fit = 'syx' if susp else 'yx'
 
         if susp:
             plt.semilogx(dat['data'], _ftolnln(dat['adjm_rank']), 'o')
         else:
             plt.semilogx(dat['data'], _ftolnln(dat['med_rank']), 'o')
 
-        self.plot_fits(fit, **kwargs)
+        dat = self._fits['line']
+        plt.plot(dat[0], dat[1], **kwargs)
 
         ax = plt.gca()
         formatter = mpl.ticker.FuncFormatter(_weibull_ticks)
@@ -95,82 +132,94 @@ class Analysis:
 
         plt.ylim(_ftolnln([.01, .99]))
 
-        if file_name:
-            plt.savefig(file_name)
-        else:
+        ax.grid(True, which='both')
+
+        if show:
             plt.show()
 
-    def _fit(self):
+        if file_name:
+            plt.savefig(file_name)
+
+    def pdf(self, show=True, file_name=None):
+        x = self._fits['line'][0]
+        y = scipy.stats.weibull_min.pdf(x, self.beta, 0, self.eta)
+
+        self._plot_prob(x, y, show, file_name, title='Probability Density Function')
+
+    def sf(self, show=True, file_name=None):
+        x = self._fits['line'][0]
+        y = scipy.stats.weibull_min.sf(x, self.beta, 0, self.eta)
+
+        self._plot_prob(x, y, show, file_name, title='Survival Function')
+
+    def hazard(self, show=True, file_name=None):
+        x = self._fits['line'][0]
+        y = scipy.stats.weibull_min.cdf(x, self.beta, 0, self.eta)
+
+        self._plot_prob(x, y, show, file_name, title='Hazard Function')
+
+    def cdf(self, show=True, file_name=None):
+        x = self._fits['line'][0]
+        y = scipy.stats.weibull_min.cdf(x, self.beta, 0, self.eta)
+
+        self._plot_prob(x, y, show, file_name, title='Cumulative Distribution Function')
+
+    def fr(self, show=True, file_name=None):
         """
-        Fit data.
-        
-        There are four fits.  X on Y and Y on X for data with no suspensions or
-        with suspensions (prefixed by 's').
+        probplot failure rate as a function of cycles
+        :param show: True if the item is to be shown now, False if other elements to be added later
+        :param file_name: if file_name is stated, then the probplot will be saved as a PNG
+        :return: None
         """
-        x0 = np.log(self.data.dropna()['data'].values)
-        X = sm.add_constant(x0)
-        Y = _ftolnln(self.data.dropna()['med_rank'])
-        model = sm.OLS(Y, X)
-        results = model.fit()
+        x = self._fits['line'][0]
+        y = (self.beta / self.eta) * (x / self.eta) ** (self.beta - 1)
 
-        xx = np.logspace(0, np.log(1000), 100, base=np.e)
-        XX = sm.add_constant(np.log(xx))
-        YY = results.predict(XX)
-        eta = np.exp(-results.params[0] / results.params[1])
+        self._plot_prob(x, y, show, file_name, title='Failure Rate')
 
-        self._fits['xy'] = {'results': results, 'model': model,
-                           'line': np.row_stack([xx, YY]),
-                           'beta': results.params[1],
-                           'eta': eta}
+    def _plot_prob(self, x, y, show=True, file_name=None, title=None):
+        plt.plot(x, y)
+        ax = plt.gca()
+        ax.grid(True, which='both')
 
-        Yx = sm.add_constant(Y)
-        model = sm.OLS(x0, Yx)
-        results = model.fit()
+        if title:
+            plt.title(title)
 
-        yy = _ftolnln(np.linspace(.001, .999, 100))
-        YY = sm.add_constant(yy)
-        XX = np.exp(results.predict(YY))
-        eta = np.exp(results.predict([1, 0]))
+        if show:
+            plt.show()
 
-        self._fits['yx'] = {'results': results, 'model': model,
-                           'line': np.row_stack([XX, yy]),
-                           'beta': 1 / results.params[1],
-                           'eta': eta[0]}
+        if file_name:
+            plt.savefig(file_name)
 
-        x0 = np.log(self.data.dropna()['data'].values)
-        X = sm.add_constant(x0)
-        Y = _ftolnln(self.data.dropna()['adjm_rank'])
-        model = sm.OLS(Y, X)
-        results = model.fit()
+    def b(self, percent_failed=10.0):
+        if not 0.1 <= percent_failed <= 99.0:
+            raise ValueError('portion_failed must be between 0.001 and 0.999 (inclusive)')
 
-        xx = np.logspace(0, np.log(1000), 100, base=np.e)
-        XX = sm.add_constant(np.log(xx))
-        YY = results.predict(XX)
-        eta = np.exp(-results.params[0] / results.params[1])
+        return scipy.stats.weibull_min.ppf(percent_failed / 100, self.beta, 0, self.eta)
 
-        self._fits['sxy'] = {'results': results, 'model': model,
-                            'line': np.row_stack([xx, YY]),
-                            'beta': results.params[1],
-                            'eta': eta}
+    @property
+    def mean(self):
+        """
+        mean life (mttf) is the integral of the reliability function between 0 and inf,
 
-        Yx = sm.add_constant(Y)
-        model = sm.OLS(x0, Yx)
-        results = model.fit()
+        MTTF = eta * gamma_funct(1/beta + 1)
 
-        YY = sm.add_constant(yy)
-        XX = np.exp(results.predict(YY))
-        eta = np.exp(results.predict([1, 0]))
+        where gamma function is evaluated at 1/beta+1
 
-        self._fits['syx'] = {'results': results, 'model': model,
-                            'line': np.row_stack([XX, yy]),
-                            'beta': 1 / results.params[1],
-                            'eta': eta[0]}
+        :return:
+        """
+        return self.eta * gamma(1.0/self.beta + 1)
 
-    def plot_fits(self, fit='syx', **kwargs):
-        dat = self._fits[fit]['line']
+    @property
+    def mttf(self):
+        return self.mean
 
-        plt.plot(dat[0], dat[1], **kwargs)
+    @property
+    def median(self):
+        return scipy.stats.weibull_min.ppf(0.5, self.beta, 0, self.eta)
 
+    @property
+    def characteristic_life(self):
+        return self.eta
 
 class Design:
     """

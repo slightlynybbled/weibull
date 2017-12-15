@@ -1,26 +1,32 @@
-# Temporary Disclaimer
+# Purpose
 
-I (slightlynybbled) forked this repository - including the readme - and I am currently modifying the library along with the readme to improve useability.  The below contains artifacts from the original readme that were written by the original author.  Where I have modified the library, I have modified the readme to reflect those changes.
+This package is intended to ease reliability analysis using the Weibull distribution, which is the most common method of reliability analysis.
 
-As I advance in refactoring the library into a more complete and useable package, I will eventually replace all of the text of the readme with appropriate substitutions and remove this temporary disclaimer.
+# Installation
 
-# Weibull Reliability Analysis
+Ideally, you should be able to `pip install weibull` and simply be finished.  This package is a pure-python package, so it should work on any os.  Unfortunately, this package utilizes other packages which may be more difficult to install.  Please consult package documentation for more details.
 
-This is a rough collection of Weibull analysis routines.  I make no claim to the accuracy.
+This user had the most issues installing `statsmodels` in a Windows 10 environment.  Other package dependencies - `numpy`, `pandas`, and `matplotlib` - installed without issue.
 
-Routines are for low sample sizes.  I believe at large sample sizes, maximum likelihood methods are more accurate.  The Weibull fits here are done as Y on X and X on Y regressions - the equivalent to graphing on Weibull paper.  The class can handle right-censored data (data in which the test was stopped before all units have experienced failure).
+If you are having installation issues, perhaps try the [Anaconda](https://www.anaconda.com/download/) distribution!  As I understand it, they have solved most of these installation problems for difficult packages!
 
-A class for Weibayes analysis is also included.
+# Weibull Reliability Overview
 
-Also included is are a few methods to determine test time or number of samples.
+The three primary classes are the `Analysis`, `Design`, and `Weibayes`.  Most users will want to use the `Analysis` and `Design` classes.
 
-I wrote this while working at a manufacturing company.  Before I could polish it up, I left for a completely different job.  I doubt I will use this again, but I wanted to pull the work in progress out of the iPython notebook where it was and stick it in a file.  As a result, there are some duplicate functions in the file.  I couldn't be bothered to clean those up...
+ - `Analysis` - use this when you have real-world or simulated data to determine the beta and eta values
+ - `Design` - use this to determine the test time and number of units to run
+ - `Weibayes` - basic weibayes methods implemented
 
-# Weibull Basic Fitting
+## Weibull Analysis
 
-The most fundamental weibull analysis is to calculate the values of beta and eta for a given list of life data.
+The most fundamental weibull analysis is to calculate the values of beta and eta for a given list of life data.  The curve fit can deal with censored as well as uncensored data.  
 
-Censored data can be fit as well as uncensored data.  Four fits are performed:
+### Considerations
+
+The basic method used within the `Analysis` class is the electronic equivalent of curve fitting on weibull paper.  In short, it uses regressions to determine the beta and eta values.  This works quite well for small sample sizes, but other methods - such as maximum likelihood - may yield more accurate results as sample size increases.
+
+### Fitting
 
 A basic example is shown here, but more complete examples may be found within the [examples](examples/) directory.
 
@@ -34,13 +40,71 @@ A basic example is shown here, but more complete examples may be found within th
     fail_times[6] = 3043.4
     
     analysis = weibull.Analysis(fail_times)
-    analysis.plot()
+    analysis.probplot()
     
     print(f'beta: {analysis.beta}\teta: {analysis.eta}')
 
 ![weibull _fit](images/weibull-fit.png)
 
-# Test design
+The `probplot` should give you a good visual indication of the fit, but a more quantitative analysis can be obtained by calling the `fit_test` property:
+
+    analysis.fit_test
+    
+                                OLS Regression Results                            
+    ==============================================================================
+    Dep. Variable:                      y   R-squared:                       0.958
+    Model:                            OLS   Adj. R-squared:                  0.916
+    Method:                 Least Squares   F-statistic:                     22.82
+    Date:                Thu, 14 Dec 2017   Prob (F-statistic):              0.131
+    Time:                        10:31:56   Log-Likelihood:                 2.7472
+    No. Observations:                   3   AIC:                            -1.494
+    Df Residuals:                       1   BIC:                            -3.297
+    Df Model:                           1                                         
+    Covariance Type:            nonrobust                                         
+    ==============================================================================
+                     coef    std err          t      P>|t|      [0.025      0.975]
+    ------------------------------------------------------------------------------
+    const          9.0268      0.314     28.786      0.022       5.042      13.011
+    x1             0.7647      0.160      4.777      0.131      -1.269       2.799
+    ==============================================================================
+    Omnibus:                          nan   Durbin-Watson:                   2.947
+    Prob(Omnibus):                    nan   Jarque-Bera (JB):                0.475
+    Skew:                           0.623   Prob(JB):                        0.788
+    Kurtosis:                       1.500   Cond. No.                         7.87
+    ==============================================================================
+    
+    Warnings:
+    [1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+    
+### Distribution Plotting 
+
+In addition, it is also possible to plot each of the following distributions:
+
+ - `analysis.pdf(show=True, file_name=None)` - probability density function
+ - `analysis.sf(show=True, file_name=None)` - survival function
+ - `analysis.hazard(show=True, file_name=None)` - hazard function
+ - `analysis.cdf(show=True, file_name=None)` - cumulative density function (hazard function)
+ - `analysis.fr(show=True, file_name=None)` - failure rate
+ 
+### Summary Data
+
+Some summary data may be accessed using properties:
+
+ - `analysis.mttf` - mean time to failure (MTTF)
+ - `analysis.mean` - mean (corresponds to MTTF)
+ - `analysis.median` - the median life
+ - `analysis.characteristic_life` - the characteristic life (corresponds to eta)
+ 
+### B Life
+
+A B-life is the operating time until a percentage of the units have failed.  For instance, a B10 life is the life of a product until 10% of the units have failed.  To calculate the "B life", you may use the `b()` method with a parameter being the b life number:
+
+    $> analysis.b(2)
+    451.37
+    $> analysis.b(10)
+    1535.17
+
+## Test design
 
 The `Design` class is to be utilized for two scenarios:
 
@@ -71,7 +135,7 @@ Shown are two example calculations for a target lifetime of 10000 hours with a r
     print(f'Minimum number of units for 10000 hour run: {designer.num_of_units(test_cycles=10000)}')
     print(f'Minimum hours for 20 units: {designer.num_of_cycles(num_of_units=20)}')
 
-# Weibayes
+## Weibayes
 
 Use Weibayes analysis to assist with designing your test.
 
@@ -120,3 +184,5 @@ We can further plot the data using `weibayes.plot()` resulting in:
 # Contributions
 
 Initial work on this repository was done by user [tgray](https://github.com/tgray).  You can still peruse the [original repository](https://github.com/tgray/weibull).
+
+It would be highly useful to have different estimation methods and confidence bounds within the `Analysis` class.  If you are feeling froggy, please, submit your pull request!
