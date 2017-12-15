@@ -10,7 +10,7 @@ import statsmodels.api as sm
 rcParams.update({'figure.autolayout': True})
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARN)
 
 try:
     import scipy.stats
