@@ -28,12 +28,15 @@ The basic method used within the `Analysis` class is the electronic equivalent o
 
 ### Fitting
 
-A basic example is shown here, but more complete examples may be found within the [examples](examples/) directory.
+A basic example is shown here, but more complete examples may be found within the [examples](examples/) directory.  Note that the `fail_times` starts as an array of `None`, indicating units that have not failed (right-censored data).  This will yield a conservative estimate as the currently accumulating run time will not be taken into account.
 
     import weibull
     
-    # take real data and supply it for the failure times,
-    # leaving right-censored data as None
+    # Take real data and supply it for the failure times,
+    # leaving right-censored data as None for units that
+    # have not failed yet.  This will yield a conservative
+    # estimate as the currently accumulating run time
+    # will not be taken into account
     fail_times = [None] * 10
     fail_times[7] = 1034.5
     fail_times[8] = 2550.9
@@ -45,6 +48,20 @@ A basic example is shown here, but more complete examples may be found within th
     print(f'beta: {analysis.beta}\teta: {analysis.eta}')
 
 ![weibull _fit](images/weibull-fit.png)
+
+For a more accurate beta value, specify fail times and run the analysis with a separate `suspended` column.  This takes into account the accumulated run time since the last failure and will generally improve beta values and overall cycles:
+
+    current_run_time = 4200.0
+    
+    fail_times = [current_run_time] * 10
+    fail_times[7] = 1034.5
+    fail_times[8] = 2550.9
+    fail_times[6] = 3043.4
+    
+    suspended = [True, True, True, True, True,
+                 False, False, False, True, True]
+    
+    analysis = weibull.Analysis(fail_times, suspended=suspended)
 
 The `probplot` should give you a good visual indication of the fit, but a more quantitative analysis can be obtained by calling the `fit_test` property:
 
