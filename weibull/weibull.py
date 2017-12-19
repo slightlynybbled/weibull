@@ -28,8 +28,8 @@ class Analysis:
     Based on life data, calculates a 2-parameter weibull fit
     """
     def __init__(self, data, suspended=None, unit='cycle'):
-        self._fits = {}
         self.x_unit = unit
+        self.fit_test = None
 
         self.beta, self.eta = None, None
 
@@ -101,7 +101,7 @@ class Analysis:
 
         logger.debug(f'beta: {self.beta:.2f}, eta: {self.eta:.2f}')
 
-        return {'r_squared': r_value ** 2, 'p_value': p_value}
+        self.fit_test = pd.Series({'r_squared': r_value ** 2, 'p_value': p_value})
 
     def probplot(self, show=True, file_name=None, **kwargs):
         susp = any(self.data['susp'])
@@ -245,9 +245,6 @@ class Analysis:
     def characteristic_life(self):
         return self.eta
 
-    @property
-    def fit_test(self):
-        return self.fit().summary()
 
 class Design:
     """
