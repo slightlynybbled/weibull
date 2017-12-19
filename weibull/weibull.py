@@ -54,11 +54,12 @@ class Analysis:
         dat.sort_values('data', inplace=True)
         dat['rank'] = np.arange(1, len(dat) + 1)
         dat['f_rank'] = np.nan
+
         dat.loc[dat['susp'] == False, 'f_rank'] = np.arange(1,
                                                             len(dat[dat['susp'] == False]) + 1)
         di = dat['susp'] == False
         dat.loc[di, 'med_rank'] = self._med_ra(dat.loc[di, 'f_rank'])
-        dat['rev_rank'] = dat['rank'].values[::-1]
+        dat['reverse_rank'] = dat['rank'].values[::-1]
 
         self.data = dat
         logger.debug(f'\n{self.data}')
@@ -73,8 +74,8 @@ class Analysis:
         padj = [0]
         for i in range(N):
             n = fdat.index[i]
-            pn = (fdat.loc[n, 'rev_rank'] * padj[-1] +
-                  (len(dat) + 1.)) / (fdat.loc[n, 'rev_rank'] + 1)
+            pn = (fdat.loc[n, 'reverse_rank'] * padj[-1] +
+                  (len(dat) + 1.)) / (fdat.loc[n, 'reverse_rank'] + 1)
             padj.append(pn)
             dat.loc[n, 'adj_rank'] = pn
 
@@ -87,7 +88,7 @@ class Analysis:
 
         return med_rank
 
-    def fit(self):
+    def fit_backup(self):
         """
         Fit data.
         """
@@ -117,7 +118,111 @@ class Analysis:
 
         return results
 
+    def fit(self):
+        """
+        Fit data.
+        """
+        x0 = np.log(self.data.dropna()['data'].values)
+        Y = _ftolnln(self.data.dropna()['adjm_rank'])
+
+        yy = _ftolnln(np.linspace(.001, .999, 10))
+
+        Yx = sm.add_constant(Y)
+
+        slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(Y, x0)
+
+        beta = 1.0/slope
+        x_intercept = - intercept / beta
+        eta = np.exp(-x_intercept/slope)
+
+        model = sm.OLS(x0, Yx)
+        results = model.fit()
+
+        YY = sm.add_constant(yy)
+        XX = np.exp(results.predict(YY))
+
+        self.beta = beta
+        self.eta = eta
+
+        logger.debug(f'beta: {self.beta:.2f}, eta: {self.eta:.2f}')
+
+        self._fits = {
+            'results': results,
+            'line': np.row_stack([XX, yy])
+        }
+
+        return results
+
     def probplot(self, show=True, file_name=None, **kwargs):
+        susp = any(self.data['susp'])
+
+        print(self.data)
+
+        if susp:
+            plt.semilogx(self.data['data'], _ftolnln(self.data['adjm_rank']), 'o')
+        else:
+            plt.semilogx(self.data['data'], _ftolnln(self.data['med_rank']), 'o')
+
+        x = self.data['data']
+        rank = self.data['rank']
+        median_rank = (rank - 0.3)/(rank.size + 0.4)
+        y = np.log(-np.log(1 - median_rank))
+
+        x_ideal = self.eta * np.random.weibull(self.beta, size=100)
+        x_ideal.sort()
+        F = 1 - np.exp(-(x_ideal / self.eta) ** self.beta)
+        y_ideal = np.log(-np.log(1 - F))
+
+        plt.semilogx(x_ideal, y_ideal, label=f"beta: {self.beta}\neta: {self.eta}")
+        plt.title("Weibull Probability Plot")
+        plt.xlabel(f'{self.x_unit}s')
+        plt.ylabel(f'Accumulated failures per {self.x_unit}')
+        plt.legend(loc='lower right')
+
+        # Generate ticks
+        def weibull_CDF(y, pos):
+            return "%G %%" % (100 * (1 - np.exp(-np.exp(y))))
+
+        ax = plt.gca()
+        formatter = mpl.ticker.FuncFormatter(weibull_CDF)
+        ax.yaxis.set_major_formatter(formatter)
+
+        yt_F = np.array([0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5,
+                         0.6, 0.7, 0.8, 0.9, 0.95, 0.99])
+        yt_lnF = np.log(-np.log(1 - yt_F))
+        plt.yticks(yt_lnF)
+        ax.yaxis.grid()
+        ax.xaxis.grid(which='both')
+
+        plt.show()
+
+        return
+
+        dat = self._fits['line']
+        plt.plot(dat[0], dat[1], **kwargs)
+
+        plt.xlabel(f'{self.x_unit}s')
+        plt.ylabel('% failed')
+
+        ax = plt.gca()
+        formatter = mpl.ticker.FuncFormatter(_weibull_ticks)
+        ax.yaxis.set_major_formatter(formatter)
+        yt_F = np.array([0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5,
+                         0.6, 0.7, 0.8, 0.9, 0.95, 0.99])
+        yt_lnF = _ftolnln(yt_F)
+        plt.yticks(yt_lnF)
+
+        plt.ylim(_ftolnln([.01, .99]))
+
+        ax.grid(True, which='both')
+
+        if file_name:
+            plt.savefig(file_name)
+
+        if show:
+            plt.show()
+
+    def probplot_backup(self, show=True, file_name=None, **kwargs):
         susp = any(self.data['susp'])
 
         if susp:
