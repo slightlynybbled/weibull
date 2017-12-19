@@ -24,10 +24,20 @@ def _ftolnln(f):
 
 
 class Analysis:
+    r"""
+    Calculates and plots data points and curves for a standard 2-parameter Weibull for analyzing life data.
+
+    :param data: A list or numpy array of life data, i.e. ``[127, 234, 329, 444]``
+    :param suspended: A list or numpy array of suspensions as boolean values, i.e. ``[False, False, True, True]``. At any point which indicates ``True`` means that the test was stopped - or that the item was removed from the test - before the item failed.
+    :param unit: The unit ('hour', 'minute', 'cycle', etc.).  This is used to add some useful information to the visualizations.  For instance, if the unit is ``hour``, then the x-axis will be labed in hours.
+
+    :ivar beta: The current value of the shape parameter, :math:`\beta`.  This value is initially set to ``None``.  The proper value for ``beta`` will be calculated on call to the ``fit()`` method.  The user may also set this value directly.
+    :ivar eta: The current value of the scale parameter, :math:`\eta`. This value is initially set to ``None``.  The proper value for ``beta`` will be calculated on call to the ``fit()`` method.  The user may also set this value directly.
+    :ivar fit_test: Basic statistics regarding the results of ``fit()``, such as :math:`R^2` and P-value.
     """
-    Based on life data, calculates a 2-parameter weibull fit
-    """
-    def __init__(self, data, suspended=None, unit='cycle'):
+
+    def __init__(self, data: list, suspended: bool=None, unit: str='cycle'):
+
         self.x_unit = unit
         self.fit_test = None
 
@@ -84,8 +94,10 @@ class Analysis:
         return med_rank
 
     def fit(self):
-        """
-        Fit data.
+        r"""
+        Calculate :math:`\beta` and :math:`\eta` using a curve fit of the supplied data.
+
+        :return: None
         """
         x0 = np.log(self.data.dropna()['data'].values)
         y = _ftolnln(self.data.dropna()['adjm_rank'])
@@ -103,7 +115,16 @@ class Analysis:
 
         self.fit_test = pd.Series({'r_squared': r_value ** 2, 'p_value': p_value})
 
-    def probplot(self, show=True, file_name=None, **kwargs):
+    def probplot(self, show: bool=True, file_name: str=None, **kwargs):
+        r"""
+        Generate a probability plot.  Use this to show the data points plotted with
+        the beta and eta values.
+
+        :param show: True if the plot is to be shown, false if otherwise
+        :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
+        :param kwargs: valid matplotlib options
+        :return: None
+        """
         susp = any(self.data['susp'])
 
         if susp:
@@ -150,7 +171,14 @@ class Analysis:
 
         return
 
-    def pdf(self, show=True, file_name=None):
+    def pdf(self, show: bool=True, file_name: str=None):
+        r"""
+        Plot the probability density function
+
+        :param show: True if the plot is to be shown, false if otherwise
+        :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
+        :return: None
+        """
         x = np.linspace(0.01, self.eta*5, 100)
         y = scipy.stats.weibull_min.pdf(x, self.beta, 0, self.eta)
 
@@ -158,7 +186,14 @@ class Analysis:
                         title='Probability Density Function',
                         y_label=f'probability/{self.x_unit}')
 
-    def sf(self, show=True, file_name=None):
+    def sf(self, show: bool=True, file_name: str=None):
+        r"""
+        Plot the survival function
+
+        :param show: True if the plot is to be shown, false if otherwise
+        :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
+        :return: None
+        """
         x = np.linspace(0.01, self.eta * 5, 100)
         y = scipy.stats.weibull_min.sf(x, self.beta, 0, self.eta)
 
@@ -166,7 +201,14 @@ class Analysis:
                         title='Survival Function',
                         y_label=f'probability of survival')
 
-    def hazard(self, show=True, file_name=None):
+    def hazard(self, show: bool=True, file_name: str=None):
+        r"""
+        Plot the hazard (CDF) function
+
+        :param show: True if the plot is to be shown, false if otherwise
+        :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
+        :return: None
+        """
         x = np.linspace(0.01, self.eta * 5, 100)
         y = scipy.stats.weibull_min.cdf(x, self.beta, 0, self.eta)
 
@@ -174,7 +216,14 @@ class Analysis:
                         title='Hazard Function',
                         y_label='probability of failure')
 
-    def cdf(self, show=True, file_name=None):
+    def cdf(self, show: bool=True, file_name: str=None):
+        r"""
+        Plot the cumulative distribution function
+
+        :param show: True if the plot is to be shown, false if otherwise
+        :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
+        :return: None
+        """
         x = np.linspace(0.01, self.eta * 5, 100)
         y = scipy.stats.weibull_min.cdf(x, self.beta, 0, self.eta)
 
@@ -182,9 +231,10 @@ class Analysis:
                         title='Cumulative Distribution Function',
                         y_label='probability of failure')
 
-    def fr(self, show=True, file_name=None):
-        """
-        probplot failure rate as a function of cycles
+    def fr(self, show: bool=True, file_name: str=None):
+        r"""
+        Plot failure rate as a function of cycles
+
         :param show: True if the item is to be shown now, False if other elements to be added later
         :param file_name: if file_name is stated, then the probplot will be saved as a PNG
         :return: None
@@ -196,7 +246,18 @@ class Analysis:
                         title='Failure Rate',
                         y_label=f'failures/{self.x_unit}')
 
-    def _plot_prob(self, x, y, show=True, file_name=None, title=None, y_label='probability'):
+    def _plot_prob(self, x: list, y: list, show: bool=True, file_name: str=None, title: str=None, y_label: str='probability'):
+        r"""
+        Base plot function used for the density function plotting
+
+        :param x: the x values
+        :param y: the y values
+        :param show: True if the plot is to be shown, false if otherwise
+        :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
+        :param title: the plot title
+        :param y_label: the y-axis label
+        :return: None
+        """
         plt.plot(x, y)
 
         plt.xlabel(f'{self.x_unit}s')
@@ -214,35 +275,59 @@ class Analysis:
         if show:
             plt.show()
 
-    def b(self, percent_failed=10.0):
-        if not 0.1 <= percent_failed <= 99.0:
+    def b(self, percent_failed: (float, str)=10.0):
+        r"""
+        Calculate the B-life value
+
+        :param percent_failed: the number of elements that have failed as a percent (i.e. 10)
+        :return: the life in cycles/hours/etc.
+        """
+        pf = float(percent_failed)
+
+        if not 0.1 <= pf <= 99.0:
             raise ValueError('portion_failed must be between 0.001 and 0.999 (inclusive)')
 
-        return scipy.stats.weibull_min.ppf(percent_failed / 100, self.beta, 0, self.eta)
+        return scipy.stats.weibull_min.ppf(pf / 100, self.beta, 0, self.eta)
 
     @property
     def mean(self):
-        """
-        mean life (mttf) is the integral of the reliability function between 0 and inf,
+        r"""
+        Calculates and returns mean life (aka, the MTTF) is the integral of the reliability function between 0 and inf,
 
-        MTTF = eta * gamma_funct(1/beta + 1)
+        .. math::
+            MTTF = \eta \Gamma(\frac{1}{\beta} + 1)
 
-        where gamma function is evaluated at 1/beta+1
+        where gamma function, :math:`\Gamma`, is evaluated at :math:`\frac{1}{\beta+1}`
 
-        :return:
+        :return: the mean life of the product
         """
         return self.eta * gamma(1.0/self.beta + 1)
 
     @property
     def mttf(self):
+        r"""
+        Calculates and returns mean time between failures (MTTF)
+
+        :return: the mean time to failure
+        """
         return self.mean
 
     @property
     def median(self):
+        r"""
+        Calculates and returns median life of the product
+
+        :return: The median life
+        """
         return scipy.stats.weibull_min.ppf(0.5, self.beta, 0, self.eta)
 
     @property
     def characteristic_life(self):
+        r"""
+        Returns the current characteristic life of the product, aka :math:`\eta`
+
+        :return: the characteristic life of the product
+        """
         return self.eta
 
 

@@ -8,14 +8,14 @@ Welcome to weibull's documentation!
 
 ..  toctree::
     :maxdepth: 2
-    :caption: Contents:
 
+    Brief Introduction to Reliability Analysis <briefintro.rst>
     Analysis <analysis.rst>
 
 Introduction
 ------------
 
-The weibull package is a package designed for easy reliability analysis using the weibull distribution.  This documentation will not make a high effort to explain Weibull analysis but will, instead, focus on the use of the package.
+The ``weibull`` package is a package designed for easy reliability analysis using the weibull distribution.  This documentation will not make a high effort to explain Weibull analysis but will, instead, focus on the use of the package.  Despite this, there are still some obligatory convention to establish in order to make the documentation and packaging readable.  Conventions are established in :ref:`introduction-to-reliability-analysis`.
 
 Installation
 ------------
