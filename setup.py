@@ -10,7 +10,7 @@ requirements = [
     'pandas >= 0.20.0',
     'numpy >= 1.0',
     'matplotlib >= 2.0',
-    'statsmodels >= 0.8'
+    'scipy >= 1.0.0'
 ]
 
 setup_requirements = [

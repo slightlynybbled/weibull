@@ -5,18 +5,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib import rcParams
-import statsmodels.api as sm
+import scipy.stats
+from scipy.special import gamma
 
 rcParams.update({'figure.autolayout': True})
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.WARN)
-
-try:
-    import scipy.stats
-    from scipy.special import gamma
-except ImportError:
-    logger.warn('Unable to import scipy.stats module - some functionality disabled')
 
 
 # convenience functions
@@ -88,70 +83,25 @@ class Analysis:
 
         return med_rank
 
-    def fit_backup(self):
-        """
-        Fit data.
-        """
-        x0 = np.log(self.data.dropna()['data'].values)
-        Y = _ftolnln(self.data.dropna()['adjm_rank'])
-
-        yy = _ftolnln(np.linspace(.001, .999, 100))
-
-        Yx = sm.add_constant(Y)
-
-        model = sm.OLS(x0, Yx)
-        results = model.fit()
-
-        YY = sm.add_constant(yy)
-        XX = np.exp(results.predict(YY))
-        eta = np.exp(results.predict([1, 0]))
-
-        self.beta = 1 / results.params[1]
-        self.eta = eta[0]
-
-        logger.debug(f'beta: {self.beta:.2f}, eta: {self.eta:.2f}')
-
-        self._fits = {
-            'results': results,
-            'line': np.row_stack([XX, yy])
-        }
-
-        return results
-
     def fit(self):
         """
         Fit data.
         """
         x0 = np.log(self.data.dropna()['data'].values)
-        Y = _ftolnln(self.data.dropna()['adjm_rank'])
+        y = _ftolnln(self.data.dropna()['adjm_rank'])
 
-        yy = _ftolnln(np.linspace(.001, .999, 10))
-
-        Yx = sm.add_constant(Y)
-
-        slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(Y, x0)
+        slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(y, x0)
 
         beta = 1.0/slope
         x_intercept = - intercept / beta
         eta = np.exp(-x_intercept/slope)
-
-        model = sm.OLS(x0, Yx)
-        results = model.fit()
-
-        YY = sm.add_constant(yy)
-        XX = np.exp(results.predict(YY))
 
         self.beta = beta
         self.eta = eta
 
         logger.debug(f'beta: {self.beta:.2f}, eta: {self.eta:.2f}')
 
-        self._fits = {
-            'results': results,
-            'line': np.row_stack([XX, yy])
-        }
-
-        return results
+        return {'r_squared': r_value ** 2, 'p_value': p_value}
 
     def probplot(self, show=True, file_name=None, **kwargs):
         susp = any(self.data['susp'])
@@ -163,11 +113,7 @@ class Analysis:
         else:
             plt.semilogx(self.data['data'], _ftolnln(self.data['med_rank']), 'o')
 
-        x = self.data['data']
-        rank = self.data['rank']
-        median_rank = (rank - 0.3)/(rank.size + 0.4)
-        y = np.log(-np.log(1 - median_rank))
-
+        # todo: choose more wisely than 'random'
         x_ideal = self.eta * np.random.weibull(self.beta, size=100)
         x_ideal.sort()
         F = 1 - np.exp(-(x_ideal / self.eta) ** self.beta)
@@ -194,65 +140,13 @@ class Analysis:
         ax.yaxis.grid()
         ax.xaxis.grid(which='both')
 
-        plt.show()
+        if file_name:
+            plt.savefig(file_name)
+
+        if show:
+            plt.show()
 
         return
-
-        dat = self._fits['line']
-        plt.plot(dat[0], dat[1], **kwargs)
-
-        plt.xlabel(f'{self.x_unit}s')
-        plt.ylabel('% failed')
-
-        ax = plt.gca()
-        formatter = mpl.ticker.FuncFormatter(_weibull_ticks)
-        ax.yaxis.set_major_formatter(formatter)
-        yt_F = np.array([0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5,
-                         0.6, 0.7, 0.8, 0.9, 0.95, 0.99])
-        yt_lnF = _ftolnln(yt_F)
-        plt.yticks(yt_lnF)
-
-        plt.ylim(_ftolnln([.01, .99]))
-
-        ax.grid(True, which='both')
-
-        if file_name:
-            plt.savefig(file_name)
-
-        if show:
-            plt.show()
-
-    def probplot_backup(self, show=True, file_name=None, **kwargs):
-        susp = any(self.data['susp'])
-
-        if susp:
-            plt.semilogx(self.data['data'], _ftolnln(self.data['adjm_rank']), 'o')
-        else:
-            plt.semilogx(self.data['data'], _ftolnln(self.data['med_rank']), 'o')
-
-        dat = self._fits['line']
-        plt.plot(dat[0], dat[1], **kwargs)
-
-        plt.xlabel(f'{self.x_unit}s')
-        plt.ylabel('% failed')
-
-        ax = plt.gca()
-        formatter = mpl.ticker.FuncFormatter(_weibull_ticks)
-        ax.yaxis.set_major_formatter(formatter)
-        yt_F = np.array([0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5,
-                         0.6, 0.7, 0.8, 0.9, 0.95, 0.99])
-        yt_lnF = _ftolnln(yt_F)
-        plt.yticks(yt_lnF)
-
-        plt.ylim(_ftolnln([.01, .99]))
-
-        ax.grid(True, which='both')
-
-        if file_name:
-            plt.savefig(file_name)
-
-        if show:
-            plt.show()
 
     def pdf(self, show=True, file_name=None):
         x = self._fits['line'][0]
