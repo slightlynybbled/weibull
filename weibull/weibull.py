@@ -106,28 +106,30 @@ class Analysis:
     def probplot(self, show=True, file_name=None, **kwargs):
         susp = any(self.data['susp'])
 
-        print(self.data)
-
         if susp:
             plt.semilogx(self.data['data'], _ftolnln(self.data['adjm_rank']), 'o')
         else:
             plt.semilogx(self.data['data'], _ftolnln(self.data['med_rank']), 'o')
 
-        # todo: choose more wisely than 'random'
-        x_ideal = self.eta * np.random.weibull(self.beta, size=100)
+        # calculate the ideal x and y values
+        x_ideal = self.eta * np.random.weibull(self.beta, size=1000)
         x_ideal.sort()
-        F = 1 - np.exp(-(x_ideal / self.eta) ** self.beta)
-        y_ideal = np.log(-np.log(1 - F))
+        f = 1 - np.exp(-(x_ideal / self.eta) ** self.beta)
+        x_ideal = x_ideal[f > 0.01]  # take f > 1%
+        f = 1 - np.exp(-(x_ideal / self.eta) ** self.beta)
+        x_ideal = x_ideal[f < 0.99]  # take f < 99%
+        f = f[f < 0.99]
+        y_ideal = np.log(-np.log(1 - f))
 
-        plt.semilogx(x_ideal, y_ideal, label=f"beta: {self.beta}\neta: {self.eta}")
+        plt.semilogx(x_ideal, y_ideal, label=f"beta: {self.beta:.02f}\neta: {self.eta:.01f}")
         plt.title("Weibull Probability Plot")
         plt.xlabel(f'{self.x_unit}s')
         plt.ylabel(f'Accumulated failures per {self.x_unit}')
         plt.legend(loc='lower right')
 
         # Generate ticks
-        def weibull_CDF(y, pos):
-            return "%G %%" % (100 * (1 - np.exp(-np.exp(y))))
+        def weibull_CDF(y, _):
+            return f'{(100 * (1 - np.exp(-np.exp(y)))):.0f}%'
 
         ax = plt.gca()
         formatter = mpl.ticker.FuncFormatter(weibull_CDF)
