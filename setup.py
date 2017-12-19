@@ -14,7 +14,8 @@ requirements = [
 ]
 
 setup_requirements = [
-    'flake8 == 3.5.0'
+    'flake8 >= 3.5.0',
+    'pytest >= 1.4.0'
 ]
 
 setup(

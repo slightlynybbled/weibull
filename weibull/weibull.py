@@ -151,7 +151,7 @@ class Analysis:
         return
 
     def pdf(self, show=True, file_name=None):
-        x = self._fits['line'][0]
+        x = np.linspace(0.01, self.eta*5, 100)
         y = scipy.stats.weibull_min.pdf(x, self.beta, 0, self.eta)
 
         self._plot_prob(x, y, show, file_name,
@@ -159,7 +159,7 @@ class Analysis:
                         y_label=f'probability/{self.x_unit}')
 
     def sf(self, show=True, file_name=None):
-        x = self._fits['line'][0]
+        x = np.linspace(0.01, self.eta * 5, 100)
         y = scipy.stats.weibull_min.sf(x, self.beta, 0, self.eta)
 
         self._plot_prob(x, y, show, file_name,
@@ -167,7 +167,7 @@ class Analysis:
                         y_label=f'probability of survival')
 
     def hazard(self, show=True, file_name=None):
-        x = self._fits['line'][0]
+        x = np.linspace(0.01, self.eta * 5, 100)
         y = scipy.stats.weibull_min.cdf(x, self.beta, 0, self.eta)
 
         self._plot_prob(x, y, show, file_name,
@@ -175,7 +175,7 @@ class Analysis:
                         y_label='probability of failure')
 
     def cdf(self, show=True, file_name=None):
-        x = self._fits['line'][0]
+        x = np.linspace(0.01, self.eta * 5, 100)
         y = scipy.stats.weibull_min.cdf(x, self.beta, 0, self.eta)
 
         self._plot_prob(x, y, show, file_name,
@@ -189,7 +189,7 @@ class Analysis:
         :param file_name: if file_name is stated, then the probplot will be saved as a PNG
         :return: None
         """
-        x = self._fits['line'][0]
+        x = np.linspace(0.01, self.eta * 5, 100)
         y = (self.beta / self.eta) * (x / self.eta) ** (self.beta - 1)
 
         self._plot_prob(x, y, show, file_name,
