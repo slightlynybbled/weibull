@@ -336,20 +336,19 @@ class Design:
     Will determine the required test time required given the number of units
     under test and the target cycles OR it will determine the number of units
     given the test time and the target cycles.
+
+    :param target_cycles: The target number of cycles/minutes/hours
+    :param reliability: The fraction of units still running after target_cycles, 0.001 to 0.999
+    :param confidence_level: The fractional level of confidence, 0.001 to 0.999
+    :param expected_beta: The anticipated level of beta - often worse-case - based on historical data or other assumptions
     """
 
-    def __init__(self, target_cycles,
-                 reliability=0.9, confidence_level=0.9, expected_beta=2.0):
-        """
-        Initializes the Design class
-        :param target_cycles: the target number of cycles
-        :param reliability: the fraction of units still running after target_cycles
-        :param confidence_level: the fractional level of confidence
-        :param expected_beta: the anticipated level of beta (often worse-case)
-        """
-        if not 0.01 <= reliability <= 0.99:
+    def __init__(self, target_cycles: (int, float),
+                 reliability: float=0.9, confidence_level: float=0.9,
+                 expected_beta: float=2.0):
+        if not 0.001 <= reliability <= 0.999:
             raise ValueError('The reliability must be between 0.01 and 0.99')
-        if not 0.01 <= confidence_level <= 0.99:
+        if not 0.001 <= confidence_level <= 0.999:
             raise ValueError('The confidence level must be between 0.01 and 0.99')
 
         self.target_cycles = target_cycles
@@ -357,18 +356,11 @@ class Design:
         self.confidence_level = confidence_level
         self.beta = expected_beta
 
-    def num_of_units(self, test_cycles):
-        return self._calc_num_of_units(test_cycles)
-
-    def num_of_cycles(self, num_of_units):
-        return self._calc_test_cycles(num_of_units)
-
-    def _calc_num_of_units(self, test_cycles):
+    def num_of_units(self, test_cycles: (int, float)):
         """
-        Design a test, calculating the number of units
-        required to run for the test duration / cycles
+        Design a test, calculating the number of units required to run for the test duration / cycles in order to prove the reliability at target_cycles.
 
-        :return: number of units required for the test
+        :return: The number of units required
         """
 
         b = -np.log(self.reliability)
@@ -380,10 +372,9 @@ class Design:
 
         return units
 
-    def _calc_test_cycles(self, number_of_units):
+    def num_of_cycles(self, number_of_units: int):
         """
-        Design a test, calculating the test duration/cycles
-        to prove the required reliability
+        Design a test, calculating the test duration/cycles to prove the required reliability at target_cycles.
 
         :return: the required duration or cycles
         """
