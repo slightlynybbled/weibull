@@ -50,3 +50,15 @@ plotter.pdf(show=False)
 plotter.eta = 2.0
 plotter.pdf(file_name='eta-effects-on-pdf.png')
 
+# bathtub failure rate
+# failure rate comparison
+plotter.beta = 0.8
+plotter.fr(show=False)
+
+plotter.beta = 1.0
+plotter.fr(show=False)
+
+plotter.beta = 10
+plotter.eta = 10.0
+
+plotter.fr(file_name='bathtub-components.png')
