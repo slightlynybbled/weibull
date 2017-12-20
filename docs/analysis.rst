@@ -42,7 +42,7 @@ Life Calculations
 
 Perhaps one of the most often requested reliability attributes of an item is its B-life.  You can read the B-life as the life of a product until a certain percent of a product has failed.  For instance, it is common in bearings to refer to a B10 or L10, which is the life of a product until 10% of the items have failed.
 
-To access the B life of the ``Analysis`` class, simply call the ``b()`` method with the number specified as the sole parameter.  For instance::
+To access the :ref:`b-life` of the ``Analysis`` class, simply call the ``b()`` method with the number specified as the sole parameter.  For instance::
 
     print(f'B10 life: {analysis.b(10):.0f}')
     print(f'B20 life: {analysis.b(20):.0f}')
@@ -54,7 +54,7 @@ One of the most often requested features of such a package is plotting the data,
 
 Building on the ``analysis`` instance above::
 
-    analysis.probplot()  # option to save as an image
+    analysis.probplot()
     analysis.pdf()
     analysis.sf()
     analysis.hazard()
