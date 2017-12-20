@@ -11,6 +11,7 @@ Welcome to weibull's documentation!
 
     Brief Introduction to Reliability Analysis <briefintro.rst>
     Analysis <analysis.rst>
+    Design <design.rst>
 
 Introduction
 ------------
@@ -37,13 +38,8 @@ Classes
 
 There are three primary classes available in ``weibull``:
 
- * ``Analysis``
- * ``Design``
- * ``Weibayes``
+ * ``Analysis`` - Used for analysis, you are probably wanting this
+ * ``Design`` - Used for reliability test design
+ * ``Weibayes`` - Used for analysis and design using some assumptions
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+:ref:`genindex`

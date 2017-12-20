@@ -52,15 +52,41 @@ Plotting
 
 One of the most often requested features of such a package is plotting the data, particularly in Jupyter Notebooks.  The ``weibull`` package comes with built-in methods to easily display and save standard plots with one-line methods.
 
-Building on the ``analysis`` instance above::
+Building on the ``analysis`` instance above, we will examine the probability plot::
 
     analysis.probplot()
+
+.. image:: images/weibull-fit-10pt.png
+
+We can also examine a number of other common function plots (only the hazard plot is shown, but the others are along the same line).::
+
     analysis.pdf()
     analysis.sf()
     analysis.hazard()
     analysis.cdf()
 
+.. image:: images/weibull-hazard-10pt.png
+
 Each of these functions will generate a plot that is suitable for publication or insertion into a Jupyter Notebook.  Again, note that some of these methods - such as ``hazard()`` and ``cdf()`` will produce the same plot with slightly different labeling.
+
+Manipulating :math:`\beta` and :math:`\eta`
+-------------------------------------------
+
+It is possible to assign :math:`\beta` and :math:`\eta` using normal python commands::
+
+    analysis.beta = 5.4
+    analysis.eta = 6050
+
+When these variables are manipulated, then any plotting functionality will assume the new values.  With that in mind, we can actually delay the plotting functionality using ``show=False`` in order to place one or more comparisons on the plot.::
+
+    analysis.probplot(show=False)
+
+    analysis.beta = 2.0  # assign new beta and eta values
+    analysis.eta = 5000
+
+    analysis.probplot()
+
+.. image:: images/weibull-prob-plot-comparison.png
 
 Class Documentation
 -------------------
