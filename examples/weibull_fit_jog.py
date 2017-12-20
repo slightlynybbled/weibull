@@ -15,7 +15,7 @@ suspended = [True, True, True, True, True,
 analysis = weibull.Analysis(fail_times, suspended=suspended, unit='hour')
 analysis.fit()
 
-analysis.probplot()
+analysis.probplot(show=False)
 
 # beta and eta may be directly manipulated to try out different hypotheses
 analysis.beta = 2.0

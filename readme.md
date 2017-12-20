@@ -1,6 +1,6 @@
 # Purpose
 
-This package is intended to ease reliability analysis using the Weibull distribution, which is the most common method of reliability analysis.
+This package is intended to ease reliability analysis using the Weibull distribution, which is the most common method of reliability analysis.  Check out the [documentation](http://weibull.readthedocs.io/en/latest/) for more information!
 
 # Project Maturity
 
@@ -165,7 +165,7 @@ Shown are two example calculations for a target lifetime of 10000 hours with a r
 
 ## Weibayes
 
-Use Weibayes analysis to assist with designing your test.
+Use Weibayes analysis to assist with designing your test or evaluating reliability within a certain confidence interval based on historical data.
 
 You have a product that needs to be tested to B2 life of 40 million time units with a confidence limit of 95%.  The product had an expected beta of 2 (lots of historical data there).  B2 life is the same as 98% survival. 
 
