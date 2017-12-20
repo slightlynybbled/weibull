@@ -20,6 +20,7 @@ analysis.pdf()
 analysis.sf()
 analysis.hazard()
 analysis.cdf()
+analysis.fr()
 
 print(f'beta: {analysis.beta}\teta: {analysis.eta}')
 print(f'{analysis.fit_test}')

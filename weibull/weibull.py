@@ -36,7 +36,7 @@ class Analysis:
     :ivar fit_test: Basic statistics regarding the results of ``fit()``, such as :math:`R^2` and P-value.
     """
 
-    def __init__(self, data: list, suspended: bool=None, unit: str='cycle'):
+    def __init__(self, data: list, suspended: list=None, unit: str='cycle'):
 
         self.x_unit = unit
         self.fit_test = None
@@ -258,7 +258,10 @@ class Analysis:
         :param y_label: the y-axis label
         :return: None
         """
-        plt.plot(x, y)
+        plt.plot(x, y, label=f"beta: {self.beta:.02f}\neta: {self.eta:.01f}")
+        plt.legend()
+        plt.xlim(0)
+        plt.ylim(0)
 
         plt.xlabel(f'{self.x_unit}s')
         plt.ylabel(y_label)

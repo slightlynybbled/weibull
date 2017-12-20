@@ -34,6 +34,8 @@ The **shape** parameter, :math:`\beta`, determines the overall shape of the dist
 
 It is possible for a product to exhibit all three of these characteristics on different components.  Imagine a car which has adhesives, electronics, and bearings, each of which have their own failure distributions.  With careful analysis of the failure modes, it is possible to determine the individual component failure distributions, which allows the designer to potentially identify and resolve the most problematic elements of the design first.
 
+.. image:: images/beta-effects-on-fr.png
+
 It is the combination of these three potentially different :math:`\beta` characteristics that gives rise to the traditional bath tub curve commonly observed in reliability analysis.
 
 .. image:: images/bathtub-curve.png
@@ -43,7 +45,7 @@ Distribution Scale
 
 The **scale** parameter, :math:`\eta`, determines the scale of the distribution.  This parameter is also known as the *characteristic life* of the product and corresponds to the cycles at which 63% of the product has failed.
 
-.. image:: images/eta-effects-on-pdf.gif
+.. image:: images/eta-effects-on-pdf.png
 
 Note that changes in the scale factor keep the shape, but effectively change the length over which the distribution is 'stretched'.  The hange in height is due to the property that the area under the curve must always be equal to 1.0.
 
