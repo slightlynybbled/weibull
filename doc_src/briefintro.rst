@@ -3,8 +3,6 @@
 Introduction to Reliability Analysis
 ====================================
 
-.. todo: Replace images with custom-generated images
-
 Weibull Distribution
 --------------------
 
