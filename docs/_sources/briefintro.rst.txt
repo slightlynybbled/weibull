@@ -34,9 +34,9 @@ It is possible for a product to exhibit all three of these characteristics on di
 
 .. image:: images/beta-effects-on-fr.png
 
-It is the combination of these three potentially different :math:`\beta` characteristics that gives rise to the traditional bath tub curve commonly observed in reliability analysis.
+It is the combination of these three potentially different :math:`\beta` characteristics that gives rise to the traditional bathtub curve commonly observed in reliability analysis.  Looking closely at the plot of failure rates, one can see that a product composed of three different :math:`\beta` characteristic components could begin to form an overall bathtub curve of the composite failure rates.
 
-.. image:: images/bathtub-curve.png
+.. image:: images/bathtub-components.png
 
 Distribution Scale
 ******************
