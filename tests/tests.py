@@ -80,6 +80,7 @@ def test_complete_dataset():
     assert 8100.0 < analysis.eta < 8160.0
     assert 1500.0 < analysis.b(10) < 1600
     assert 7400.0 < analysis.mttf < 7500
+    assert 8100.0 < analysis.eta < 8160.0
 
 
 def test_censored_dataset():
@@ -98,3 +99,70 @@ def test_censored_dataset():
 
     assert 1.5 < analysis.beta < 1.6
     assert 6500.0 < analysis.eta < 6630
+
+
+def test_design_bad_reliability():
+    with pytest.raises(ValueError):
+        designer = weibull.Design(
+            target_cycles=10000,
+            reliability=0.9999,
+            confidence_level=0.90,
+            expected_beta=1.5
+        )
+
+
+def test_design_bad_confidence():
+    with pytest.raises(ValueError):
+        designer = weibull.Design(
+            target_cycles=10000,
+            reliability=0.9,
+            confidence_level=0.0001,
+            expected_beta=1.5
+        )
+
+
+def test_design():
+    designer = weibull.Design(
+        target_cycles=10000,
+        reliability=0.9,
+        confidence_level=0.90,
+        expected_beta=1.5
+    )
+
+    assert 21.5 < designer.num_of_units(test_cycles=10000) < 22.0
+    assert 10500.0 < designer.num_of_cycles(number_of_units=20) < 10700.0
+
+
+def test_weibayes_bad_confidence():
+    N = 62
+    H = 62.0e6
+
+    run_times_desired = [H] * N
+
+    with pytest.raises(ValueError):
+        weibayes = weibull.Weibayes(run_times_desired, confidence_level=0.9999, beta=2)
+
+
+def test_weibayes():
+    N = 62
+    H = 62.0e6
+
+    run_times_desired = [H] * N
+
+    weibayes = weibull.Weibayes(run_times_desired, confidence_level=0.95, beta=2)
+    assert 40050430.0 < weibayes.b(2) < 40100000.0
+
+
+def test_weibayes_bad_b_params():
+    N = 62
+    H = 62.0e6
+
+    run_times_desired = [H] * N
+
+    weibayes = weibull.Weibayes(run_times_desired, confidence_level=0.95, beta=2)
+
+    with pytest.raises(ValueError):
+        b = weibayes.b(0.1)
+
+    with pytest.raises(ValueError):
+        b = weibayes.b(2, 0.999)
