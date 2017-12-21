@@ -14,6 +14,12 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.WARN)
 
 
+class ParameterError(Exception):
+    def __init__(self, *args):
+        default_str = 'Values for "beta" and "eta" not found; Run the "fit" method or assign values explicitly.'
+        super().__init__(default_str, *args)
+
+
 # convenience functions
 def _weibull_ticks(y, _):
     return "{:.0f}%".format(100 * (1 - np.exp(-np.exp(y))))
@@ -304,6 +310,9 @@ class Analysis:
 
         :return: the mean life of the product
         """
+        if not self.eta or not self.beta:
+            raise ParameterError
+
         return self.eta * gamma(1.0/self.beta + 1)
 
     @property
