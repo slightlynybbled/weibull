@@ -444,12 +444,6 @@ class Weibayes:
 
         self._set_confidence_level(confidence_level)
 
-    def __str__(self):
-        return f'weibayes: [eta: {self.eta:.02f}, beta: {self.beta:.02f}, cl: {self.confidence_level}]'
-
-    def __repr__(self):
-        return f"weibayes(beta={self.beta:.02f}, cl={self.confidence_level:.02f})"
-
     def _set_confidence_level(self, confidence_level):
         cl = np.float(confidence_level)
         alpha = 1.0 - cl
