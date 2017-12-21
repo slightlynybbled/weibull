@@ -131,6 +131,9 @@ class Analysis:
         :param kwargs: valid matplotlib options
         :return: None
         """
+        if not self.eta or not self.beta:
+            raise ParameterError
+
         susp = any(self.data['susp'])
 
         if susp:
@@ -185,6 +188,9 @@ class Analysis:
         :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
         :return: None
         """
+        if not self.eta or not self.beta:
+            raise ParameterError
+
         x = np.linspace(0.01, self.eta*5, 100)
         y = scipy.stats.weibull_min.pdf(x, self.beta, 0, self.eta)
 
@@ -200,6 +206,9 @@ class Analysis:
         :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
         :return: None
         """
+        if not self.eta or not self.beta:
+            raise ParameterError
+
         x = np.linspace(0.01, self.eta * 5, 100)
         y = scipy.stats.weibull_min.sf(x, self.beta, 0, self.eta)
 
@@ -215,6 +224,9 @@ class Analysis:
         :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
         :return: None
         """
+        if not self.eta or not self.beta:
+            raise ParameterError
+
         x = np.linspace(0.01, self.eta * 5, 100)
         y = scipy.stats.weibull_min.cdf(x, self.beta, 0, self.eta)
 
@@ -230,6 +242,9 @@ class Analysis:
         :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
         :return: None
         """
+        if not self.eta or not self.beta:
+            raise ParameterError
+
         x = np.linspace(0.01, self.eta * 5, 100)
         y = scipy.stats.weibull_min.cdf(x, self.beta, 0, self.eta)
 
@@ -245,6 +260,9 @@ class Analysis:
         :param file_name: if file_name is stated, then the probplot will be saved as a PNG
         :return: None
         """
+        if not self.eta or not self.beta:
+            raise ParameterError
+
         x = np.linspace(0.01, self.eta * 5, 100)
         y = (self.beta / self.eta) * (x / self.eta) ** (self.beta - 1)
 
@@ -291,6 +309,9 @@ class Analysis:
         :param percent_failed: the number of elements that have failed as a percent (i.e. 10)
         :return: the life in cycles/hours/etc.
         """
+        if not self.eta or not self.beta:
+            raise ParameterError
+
         pf = float(percent_failed)
 
         if not 0.1 <= pf <= 99.0:
@@ -322,6 +343,9 @@ class Analysis:
 
         :return: the mean time to failure
         """
+        if not self.eta or not self.beta:
+            raise ParameterError
+
         return self.mean
 
     @property
@@ -331,6 +355,9 @@ class Analysis:
 
         :return: The median life
         """
+        if not self.eta or not self.beta:
+            raise ParameterError
+
         return scipy.stats.weibull_min.ppf(0.5, self.beta, 0, self.eta)
 
     @property
@@ -340,6 +367,9 @@ class Analysis:
 
         :return: the characteristic life of the product
         """
+        if not self.eta or not self.beta:
+            raise ParameterError
+
         return self.eta
 
 

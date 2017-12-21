@@ -19,7 +19,37 @@ def test_non_fitted():
     assert analysis.eta is None
 
     with pytest.raises(weibull.ParameterError):
+        analysis.probplot()
+
+    with pytest.raises(weibull.ParameterError):
+        analysis.pdf()
+
+    with pytest.raises(weibull.ParameterError):
+        analysis.sf()
+
+    with pytest.raises(weibull.ParameterError):
+        analysis.hazard()
+
+    with pytest.raises(weibull.ParameterError):
+        analysis.cdf()
+
+    with pytest.raises(weibull.ParameterError):
+        analysis.fr()
+
+    with pytest.raises(weibull.ParameterError):
+        analysis.b(10)
+
+    with pytest.raises(weibull.ParameterError):
         m = analysis.mean
+
+    with pytest.raises(weibull.ParameterError):
+        m = analysis.mttf
+
+    with pytest.raises(weibull.ParameterError):
+        m = analysis.median
+
+    with pytest.raises(weibull.ParameterError):
+        m = analysis.characteristic_life
 
 
 def test_complete_dataset():
