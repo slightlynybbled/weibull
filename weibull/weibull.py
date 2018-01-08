@@ -119,7 +119,7 @@ class Analysis:
 
         logger.debug('beta: {:.2f}, eta: {:.2f}'.format(self.beta, self.eta))
 
-        self.fit_test = pd.Series({'r_squared': r_value ** 2, 'p_value': p_value})
+        self.fit_test = pd.Series({'r_squared': r_value ** 2, 'p_value': p_value, 'fit method': 'linear regression'})
 
     def _maximum_likelihood_estimation(self):
         r"""
@@ -158,6 +158,8 @@ class Analysis:
         self.beta = shape
         self.eta = scale
 
+        self.fit_test = pd.Series({'fit method': 'maximum likelihood estimation'})
+
     def fit(self, method='lr'):
         r"""
         Calculate :math:`\beta` and :math:`\eta` using a linear regression
@@ -183,6 +185,59 @@ class Analysis:
                                'to yield better results with {} data points'.format(len(self.data)))
 
             self._maximum_likelihood_estimation()
+
+    def _confidence(self):
+        r"""
+        Calculate confidence intervals for :math:`\beta` and :math:`\eta` using the Fisher Matrix method.
+
+        :return: None
+        """
+        # following the procedure as shown on page 54 of Weibull Analysis by Brian Dodson
+        data = self.data[['data', 'susp']].copy().sort_values('susp')
+        uncensored = data[data['susp'] == False]
+        censored = data[data['susp'] == True]
+
+        # step 3
+        def calc(t):
+            first_term = self.beta / self.eta ** 2
+            second_term = ((t/self.eta) ** self.beta) * (self.beta / self.eta ** 2) * (self.beta + 1)
+
+            return first_term - second_term
+
+        data['step3'] = uncensored['data'].apply(func=calc)
+
+        def calc(t):
+            first_term = -1.0 / (self.beta ** 2)
+            second_term = ((t / self.eta) ** self.beta) * (np.log(t / self.eta) ** 2)
+
+            return first_term - second_term
+
+        data['step4'] = uncensored['data'].apply(func=calc)
+
+        def calc(t):
+            first_term = -1.0 / self.eta
+            second_term = ((t / self.eta) ** self.beta) * (1.0 / self.eta) * (self.beta * np.log(t / self.eta) + 1.0)
+
+            return first_term + second_term
+
+        data['step5'] = uncensored['data'].apply(func=calc)
+
+        def calc(t):
+            return -((t / self.eta) ** self.beta) * (self.beta / (self.eta ** 2)) * (self.beta + 1.0)
+
+        data['step6'] = censored['data'].apply(func=calc)
+
+        def calc(t):
+            return -((t / self.eta) ** self.beta) * (np.log(t / self.eta) ** 2)
+
+        data['step7'] = censored['data'].apply(func=calc)
+
+        def calc(t):
+            return ((t / self.eta) ** self.beta) * (1.0 / self.eta) * ((self.beta * np.log(t / self.eta)) + 1.0)
+
+        data['step8'] = censored['data'].apply(func=calc)
+
+        print(data)
 
     def probplot(self, show: bool=True, file_name: str=None, **kwargs):
         r"""
