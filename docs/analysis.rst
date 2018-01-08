@@ -23,9 +23,19 @@ A typical use case of the ``Analysis`` case is as follows::
 
     # this is where the actual analysis and curve fitting occur
     analysis = weibull.Analysis(fail_times, unit='hour')
+
+Fitting
+-------
+
+The ``fit()`` method is used to calculate appropriate :math:`\beta` and :math:`\eta` values, which are then stored into the class instance.  When ``fit()`` is called with no parameters, then the linear regression method of calculation is assumed::
+
     analysis.fit()
 
-When the ``fit()`` method is executed, the ``Analysis`` class will perform a curve-fit operation in which the Weibull distribution is fitted to the given data and the corresponding :math:`\beta` and :math:`\eta` are calculated.
+An alternative method is to use the Maximum Likelihood Estimation (MLE) method of fitting :math:`\beta` and :math:`\eta` to the data.  This may be done by specifying that the ``method='mle'``::
+
+    analysis.fit(method='mle')
+
+In many cases, the ``mle`` and ``lr`` methods will yield very similar values for :math:`\beta` and :math:`\eta`, but there are some cases in which one is preferred over the other.  It turns out that linear regression tends to work best for very low sample sizes, usually less than 15 while the maximum likelihood estimator works best for high sample sizes.  In both cases, the ``probplot()`` method should be used to verify that the data is a good fit.
 
 To retrieve the :math:`\beta` and :math:`\eta` values, simply use the instance variables ``beta`` and ``eta``::
 
