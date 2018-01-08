@@ -73,7 +73,7 @@ class Analysis:
         dat['reverse_rank'] = dat['rank'].values[::-1]
 
         self.data = dat
-        logger.debug(f'\n{self.data}')
+        logger.debug('\n{}'.format(self.data))
 
         self._calc_adjrank()
 
@@ -117,7 +117,7 @@ class Analysis:
         self.beta = beta
         self.eta = eta
 
-        logger.debug(f'beta: {self.beta:.2f}, eta: {self.eta:.2f}')
+        logger.debug('beta: {:.2f}, eta: {:.2f}'.format(self.beta, self.eta))
 
         self.fit_test = pd.Series({'r_squared': r_value ** 2, 'p_value': p_value})
 
@@ -151,15 +151,17 @@ class Analysis:
         f = f[f < 0.99]
         y_ideal = np.log(-np.log(1 - f))
 
-        plt.semilogx(x_ideal, y_ideal, label=f"beta: {self.beta:.02f}\neta: {self.eta:.01f}")
+        plt.semilogx(x_ideal, y_ideal,
+                     label="beta: {:.02f}\neta: {:.01f}".format(self.beta,
+                                                                self.eta))
         plt.title("Weibull Probability Plot")
-        plt.xlabel(f'{self.x_unit}s')
-        plt.ylabel(f'Accumulated failures per {self.x_unit}')
+        plt.xlabel('{}s'.format(self.x_unit))
+        plt.ylabel('Accumulated failures per {}'.format(self.x_unit))
         plt.legend(loc='lower right')
 
         # Generate ticks
         def weibull_CDF(y, _):
-            return f'{(100 * (1 - np.exp(-np.exp(y)))):.0f}%'
+            return '{:.0f}%'.format((100 * (1 - np.exp(-np.exp(y)))))
 
         ax = plt.gca()
         formatter = mpl.ticker.FuncFormatter(weibull_CDF)
@@ -196,7 +198,7 @@ class Analysis:
 
         self._plot_prob(x, y, show, file_name,
                         title='Probability Density Function',
-                        y_label=f'probability/{self.x_unit}')
+                        y_label='probability/{}'.format(self.x_unit))
 
     def sf(self, show: bool=True, file_name: str=None):
         r"""
@@ -214,7 +216,7 @@ class Analysis:
 
         self._plot_prob(x, y, show, file_name,
                         title='Survival Function',
-                        y_label=f'probability of survival')
+                        y_label='probability of survival')
 
     def hazard(self, show: bool=True, file_name: str=None):
         r"""
@@ -268,7 +270,7 @@ class Analysis:
 
         self._plot_prob(x, y, show, file_name,
                         title='Failure Rate',
-                        y_label=f'failures/{self.x_unit}')
+                        y_label='failures/{}'.format(self.x_unit))
 
     def _plot_prob(self, x: list, y: list, show: bool=True, file_name: str=None, title: str=None, y_label: str='probability'):
         r"""
@@ -282,12 +284,13 @@ class Analysis:
         :param y_label: the y-axis label
         :return: None
         """
-        plt.plot(x, y, label=f"beta: {self.beta:.02f}\neta: {self.eta:.01f}")
+        plt.plot(x, y, label='beta: {:.02f}\neta: {:.01f}'.format(self.beta,
+                                                                  self.eta))
         plt.legend()
         plt.xlim(0)
         plt.ylim(0)
 
-        plt.xlabel(f'{self.x_unit}s')
+        plt.xlabel('{}s'.format(self.x_unit))
         plt.ylabel(y_label)
 
         ax = plt.gca()
@@ -540,10 +543,13 @@ class Weibayes:
         ax = plt.gca()
         ax.text(0.02, 0.95, 'beta: {:.0f}'.format(self.beta), transform=ax.transAxes)
 
-        ax.text(.02, .90, f'eta: {self.eta[0]:.03g}',
+        ax.text(.02, .90,
+                'eta: {:.03g}'.format(self.eta[0]),
                 transform=ax.transAxes)
 
-        ax.text(.02, .85, f'confidence level: {self.confidence_level}', transform=ax.transAxes)
+        ax.text(.02, .85,
+                'confidence level: {}'.format(self.confidence_level),
+                transform=ax.transAxes)
 
     def b(self, b_spec: int=10, confidence_level: float=None):
         """
