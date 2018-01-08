@@ -431,8 +431,14 @@ class Design:
 
 
 class Weibayes:
+    """
+    Weibayes-style analysis of the data with a confidence level and beta.
 
-    def __init__(self, data, confidence_level=None, beta=2.0):
+    :param data: The data for each unit
+    :param confidence_level: The fractional level of confidence, 0.001 to 0.999
+    :param beta: The shape parameter
+    """
+    def __init__(self, data: list, confidence_level: float=None, beta: float=2.0):
         if not 0.001 < confidence_level < 0.999:
             raise ValueError('confidence level must be between 0.01 and 0.99')
 
@@ -480,7 +486,7 @@ class Weibayes:
 
     def _calc_icdf(self):
         """
-        calculates the inverse cumulative distribution function
+        Calculates the inverse cumulative distribution function
         :return: None
         """
         self.icdf_x = np.arange(.0001, .99, .0001)
@@ -494,7 +500,14 @@ class Weibayes:
 
         self.blife.index.name = 'B'
 
-    def plot(self, confidence_level=None, file_name=None):
+    def plot(self, confidence_level: float=None, show: bool=True, file_name: str=None):
+        """
+        Plot the linear plot line.
+
+        :confidence_level: the desired confidence level
+        :show: True if the plot is to be shown
+        :file_name: Save the plot as "file_name"
+        """
         if confidence_level:
             self._set_confidence_level(confidence_level)
 
@@ -520,7 +533,7 @@ class Weibayes:
 
         if file_name:
             plt.savefig(file_name)
-        else:
+        if show:
             plt.show()
 
     def _plot_annotate(self):
@@ -532,7 +545,7 @@ class Weibayes:
 
         ax.text(.02, .85, f'confidence level: {self.confidence_level}', transform=ax.transAxes)
 
-    def b(self, b_spec=10, confidence_level=None):
+    def b(self, b_spec: int=10, confidence_level: float=None):
         """
         Calculates the B-life
 
@@ -550,3 +563,4 @@ class Weibayes:
 
         b_spec_decimal = b_spec / 100.0
         return float(self.blife[b_spec_decimal].T)
+
