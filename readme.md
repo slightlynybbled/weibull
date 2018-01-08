@@ -1,6 +1,6 @@
 # Purpose
 
-This package is intended to ease reliability analysis using the Weibull distribution, which is the most common method of reliability analysis.  Check out the [documentation](https://slightlynybbled.github.io/weibull/index.html) for more information!
+This package is intended to ease reliability analysis using the Weibull distribution, which is the most common method of reliability analysis.  Check out the [documentation](http://weibull.readthedocs.io/en/latest/index.html) for more information!
 
 # Project Maturity
 
