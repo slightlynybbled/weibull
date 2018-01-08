@@ -69,7 +69,7 @@ The first task of the reliability engineer is to determine suitable values for :
 
 In general, if only a small number of data points are available, then the approximation using Weibull paper or its equivalent will generate good results.  If there is a relatively large body of data available, then MLE methods are preferred.  Both methods will generally give acceptable results, assuming that the Weibull distribution adequately describes the process.
 
-Currently, this package uses only the linear regression technique for estimating :math:`\beta` and :math:`\eta`, although it may support the MLE method in the future.
+Currently, this package uses the linear regression (LR) and maximum likelihood estimation (MLE) techniques for estimating :math:`\beta` and :math:`\eta`.  Generally, MLE is preferred for larger data sets while LR is preferred for smaller data sets (less than 15).  Examination of the fit is still essential in both methods to determine if the model actually fits the data appropriately.
 
 .. todo: Better explanation of plotting method, including censored and uncensored data
 
