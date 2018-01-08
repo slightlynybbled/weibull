@@ -99,7 +99,7 @@ class Analysis:
 
         return med_rank
 
-    def fit(self):
+    def _linear_estimation(self):
         r"""
         Calculate :math:`\beta` and :math:`\eta` using a curve fit of the supplied data.
 
@@ -120,6 +120,61 @@ class Analysis:
         logger.debug('beta: {:.2f}, eta: {:.2f}'.format(self.beta, self.eta))
 
         self.fit_test = pd.Series({'r_squared': r_value ** 2, 'p_value': p_value})
+
+    def _maximum_likelihood_estimation(self):
+        r"""
+        Calculate :math:`\beta` and :math:`\eta` using the maximum likelihood estimation method.
+
+        :return: None
+        """
+        data = self.data[['data', 'susp']].copy()
+        df_failed = data[data.susp == False]
+
+        dtf_failed = df_failed["data"].values
+
+        df_failed["ln_x_div_r"] = df_failed.apply(lambda s: np.log(s['data'])/len(df_failed), axis=1)
+
+        dtf_all = self.data['data'].values
+
+        # use Newton-Rhapson method for estimating the shape parameter
+
+        # give initial value for the shape paramter:
+        shape = (((6.0 / np.pi ** 2)
+                 * (np.sum(np.log(dtf_all) ** 2)
+                 - ((np.sum(np.log(dtf_all))) ** 2) / dtf_all.size))
+                 / (dtf_all.size - 1)) ** -0.5
+
+        # 10 iterations of the newton-rhapson method
+        for i in range(1, 11):
+            a = np.sum(np.log(dtf_failed) * 1.0) / dtf_failed.size
+            b = np.sum(dtf_all ** shape)
+            c = np.sum((dtf_all ** shape) * np.log(dtf_all))
+            h = np.sum((dtf_all ** shape) * (np.log(dtf_all)) ** 2)
+
+            shape = shape + (a + (1.0 / shape) - (c / b)) / ((1.0 / shape ** 2) + ((b * h) - c ** 2) / b ** 2)
+
+        scale = (np.sum((dtf_all ** shape) / len(df_failed))) ** (1 / shape)
+
+        self.beta = shape
+        self.eta = scale
+
+    def fit(self, method='le'):
+        r"""
+        Calculate :math:`\beta` and :math:`\eta` using a curve fit of the supplied data
+        or using the maximum likelihood method, depending on the 'method' value.
+
+        :method: 'le' for linear estimation or 'mle' for maximum likelihood estimation
+        :return: None
+        """
+        if method not in ['le', 'mle']:
+            raise ValueError('The method specified must be '
+                             'linear estimation "le" or maximum '
+                             'likelihood estimation "mle"')
+
+        if method is 'le':
+            self._linear_estimation()
+        elif method is 'mle':
+            self._maximum_likelihood_estimation()
 
     def probplot(self, show: bool=True, file_name: str=None, **kwargs):
         r"""
