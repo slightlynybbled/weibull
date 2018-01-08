@@ -99,7 +99,7 @@ class Analysis:
 
         return med_rank
 
-    def _linear_estimation(self):
+    def _linear_regression(self):
         r"""
         Calculate :math:`\beta` and :math:`\eta` using a curve fit of the supplied data.
 
@@ -158,22 +158,30 @@ class Analysis:
         self.beta = shape
         self.eta = scale
 
-    def fit(self, method='le'):
+    def fit(self, method='lr'):
         r"""
-        Calculate :math:`\beta` and :math:`\eta` using a curve fit of the supplied data
+        Calculate :math:`\beta` and :math:`\eta` using a linear regression
         or using the maximum likelihood method, depending on the 'method' value.
 
-        :method: 'le' for linear estimation or 'mle' for maximum likelihood estimation
+        :method: 'lr' for linear estimation or 'mle' for maximum likelihood estimation
         :return: None
         """
-        if method not in ['le', 'mle']:
+        if method not in ['lr', 'mle']:
             raise ValueError('The method specified must be '
-                             'linear estimation "le" or maximum '
+                             'linear regression "lr" or maximum '
                              'likelihood estimation "mle"')
 
-        if method is 'le':
-            self._linear_estimation()
+        if method is 'lr':
+            if len(self.data) >= 15:
+                logger.warning('the maximum likelihood method is likely '
+                               'to yield better results with {} data points'.format(len(self.data)))
+
+            self._linear_regression()
         elif method is 'mle':
+            if len(self.data) < 15:
+                logger.warning('the linear regression method is likely '
+                               'to yield better results with {} data points'.format(len(self.data)))
+
             self._maximum_likelihood_estimation()
 
     def probplot(self, show: bool=True, file_name: str=None, **kwargs):
