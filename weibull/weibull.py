@@ -128,7 +128,7 @@ class Analysis:
         :return: None
         """
         data = self.data[['data', 'susp']].copy()
-        df_failed = data[data.susp == False]
+        df_failed = data[data.susp == False].copy()
 
         dtf_failed = df_failed["data"].values
 
@@ -160,33 +160,7 @@ class Analysis:
 
         self.fit_test = pd.Series({'fit method': 'maximum likelihood estimation'})
 
-    def fit(self, method='lr'):
-        r"""
-        Calculate :math:`\beta` and :math:`\eta` using a linear regression
-        or using the maximum likelihood method, depending on the 'method' value.
-
-        :method: 'lr' for linear estimation or 'mle' for maximum likelihood estimation
-        :return: None
-        """
-        if method not in ['lr', 'mle']:
-            raise ValueError('The method specified must be '
-                             'linear regression "lr" or maximum '
-                             'likelihood estimation "mle"')
-
-        if method is 'lr':
-            if len(self.data) >= 15:
-                logger.warning('the maximum likelihood method is likely '
-                               'to yield better results with {} data points'.format(len(self.data)))
-
-            self._linear_regression()
-        elif method is 'mle':
-            if len(self.data) < 15:
-                logger.warning('the linear regression method is likely '
-                               'to yield better results with {} data points'.format(len(self.data)))
-
-            self._maximum_likelihood_estimation()
-
-    def _confidence(self):
+    def _confidence(self, confidence=0.95):
         r"""
         Calculate confidence intervals for :math:`\beta` and :math:`\eta` using the Fisher Matrix method.
 
@@ -237,7 +211,58 @@ class Analysis:
 
         data['step8'] = censored['data'].apply(func=calc)
 
-        print(data)
+        f11 = -np.sum(data['step3']) - np.sum(data['step6'])
+        f12 = -np.sum(data['step5']) - np.sum(data['step8'])
+        f22 = -np.sum(data['step4']) - np.sum(data['step7'])
+
+        f = np.matrix([[f11, f12], [f12, f22]])
+        fprime = np.linalg.inv(f)
+
+        nd = scipy.stats.norm
+        k_index = (1.0 - confidence)/2 + confidence
+        k = nd.ppf(k_index)
+
+        beta_lower = self.beta / (np.e ** (k * np.sqrt(fprime[1, 1]) / self.beta))
+        beta_upper = self.beta * np.e ** (k * np.sqrt(fprime[1, 1]) / self.beta)
+
+        eta_lower = self.eta / (np.e ** (k * np.sqrt(fprime[0, 0]) / self.eta))
+        eta_upper = self.eta * np.e ** (k * np.sqrt(fprime[0, 0]) / self.eta)
+
+        self.fit_test['confidence'] = confidence
+        self.fit_test['beta lower limit'] = beta_lower
+        self.fit_test['beta nominal'] = self.beta
+        self.fit_test['beta upper limit'] = beta_upper
+        self.fit_test['eta lower limit'] = eta_lower
+        self.fit_test['eta nominal'] = self.eta
+        self.fit_test['eta upper limit'] = eta_upper
+
+    def fit(self, method: str='lr', confidence_level: float=0.95):
+        r"""
+        Calculate :math:`\beta` and :math:`\eta` using a linear regression
+        or using the maximum likelihood method, depending on the 'method' value.
+
+        :method: 'lr' for linear estimation or 'mle' for maximum likelihood estimation
+        :return: None
+        """
+        if method not in ['lr', 'mle']:
+            raise ValueError('The method specified must be '
+                             'linear regression "lr" or maximum '
+                             'likelihood estimation "mle"')
+
+        if method is 'lr':
+            if len(self.data) >= 15:
+                logger.warning('the maximum likelihood method is likely '
+                               'to yield better results with {} data points'.format(len(self.data)))
+
+            self._linear_regression()
+        elif method is 'mle':
+            if len(self.data) < 15:
+                logger.warning('the linear regression method is likely '
+                               'to yield better results with {} data points'.format(len(self.data)))
+
+            self._maximum_likelihood_estimation()
+
+        self._confidence(confidence_level)
 
     def probplot(self, show: bool=True, file_name: str=None, **kwargs):
         r"""
