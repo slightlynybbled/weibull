@@ -358,6 +358,9 @@ class Analysis:
         x = np.linspace(0.01, self.eta * 5, 1000)
         y = scipy.stats.weibull_min.sf(x, self.beta, 0, self.eta)
 
+        y = y[y > 0.00001]
+        x = x[: len(y)]
+
         upper_upper = scipy.stats.weibull_min.sf(x,
                                                  self.fit_test['beta upper limit'],
                                                  0,
@@ -414,6 +417,9 @@ class Analysis:
         x = np.linspace(0.01, self.eta * 5, 1000)
         y = scipy.stats.weibull_min.cdf(x, self.beta, 0, self.eta)
 
+        y = y[y < 0.9999]
+        x = x[: len(y)]
+
         upper_upper = scipy.stats.weibull_min.cdf(x,
                                                   self.fit_test['beta upper limit'],
                                                   0,
@@ -457,7 +463,7 @@ class Analysis:
         if not self.eta or not self.beta:
             raise ParameterError
 
-        x = np.linspace(0.01, self.eta * 5, 1000)
+        x = np.linspace(0.01, self.eta * 2, 1000)
         y = (self.beta / self.eta) * (x / self.eta) ** (self.beta - 1)
 
         beta = self.fit_test['beta upper limit']
