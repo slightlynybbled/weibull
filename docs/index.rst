@@ -14,6 +14,7 @@ Welcome to weibull's documentation!
     Design <design.rst>
     Weibayes <weibayes.rst>
     Examples <examples.rst>
+    Gallery <gallery.rst>
     Brief Introduction to Reliability Analysis <briefintro.rst>
 
 Introduction
