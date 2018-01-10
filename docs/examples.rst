@@ -1,10 +1,7 @@
 Examples
 ========
 
-Analysis
---------
-
-Step 1: Determining :math:`\beta` and :math:`\eta` Values
+Determining :math:`\beta` and :math:`\eta` Values
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Before any suppositions may be gathered, it is appropriate to calculate :math:`\beta` and :math:`\eta` values.  Once we are satisfied that :math:`\beta` and :math:`\eta` match the raw data, we can move on to determining useful life characteristics for the product.
@@ -32,16 +29,19 @@ In this example, we will take a complete set of failure data that has no censors
 
 
     # this is where the actual analysis and curve fitting occur
-    analysis = weibull.Analysis(fail_times, unit='hour')
+    analysis = weibull.Analysis(fail_times,
+                                unit='hour')
     analysis.fit(method='mle')
 
     analysis.probplot()
+
+In this example, we chose to use the Maximum Likelihood Estimation method of estimating :math:`\beta` and :math:`\eta`, which is shown in the ``analysis.fit(method='mle)`` line.  If the ``fit()`` method were called with no parameters, it would - by default - have used linear regression.
 
 By examining the probability plot, we can visually determine if the :math:`\beta` and :math:`\eta` are appropriately calculated.
 
 By specifying a file name, the probability plot can be saved to a file ``analysis.probplot(file_name='prob.png')``.  This is optional, of course, and not required.
 
-Example 2: Right-Censored Data
+Example 3: Right-Censored Data
 ******************************
 
 Often, it is necessary to use only the smallest amount of data in order to calculate the values for :math:`\beta` and :math:`\eta`.  For instance, a long-running test might have 10 units on the test bench, but only 3 of them have failed.  When the data is so small, the default linear regression fit method is probably going to yield better results than the maximum-likelihood estimation::
@@ -56,9 +56,42 @@ Often, it is necessary to use only the smallest amount of data in order to calcu
     suspended = [True, True, True, True, True,
                  False, False, False, True, True]
 
-    analysis = weibull.Analysis(fail_times, suspended=suspended, unit='hour')
+    analysis = weibull.Analysis(fail_times,
+                                suspended=suspended,
+                                unit='hour')
     analysis.fit()
 
     analysis.probplot()
 
 Again, we plot the raw data points against the calculated :math:`\beta` and :math:`\eta` in order to ensure that the linear regression is an appropriate fit for the data.  As more failures occur, more accurate curve fits may be run.
+
+Life Calculations
+^^^^^^^^^^^^^^^^^
+
+Once :math:`\beta` and :math:`\eta` are determined, then they may be utilized to obtain the basic lifetime data that may be utilized for planning.  One common reliability metric is the :ref:`b-life`.  Obtaining a B10 life using the ``analysis`` object is trivial::
+
+    print(f'B10 life: {analysis.b(10):.0f}')
+
+As you can see, simply calling the ``b()`` function with the appropriate number as the parameter will return the B-life based on :math:`\beta` and :math:`\eta`.
+
+Basic Life Statistics
+^^^^^^^^^^^^^^^^^^^^^
+
+For user convenience, the ``mean``, ``median``, ``characteristic_life``, and ``mttf`` are defined as attributes of the class and may be called at any time after an initial curve fit.  Note that there is some overlap with other class variables.  For instance, the ``characteristic_life`` happens to be the same thing as ``eta``, but if a customer asks for the characteristic life, then having this available makes the code more readable and correspond more closely to the specification.
+
+Plotting
+^^^^^^^^
+
+We can also plot various functions of interest, such as the survival function and hazard functions, amongst others.::
+
+    analysis.pdf()      # probability density function
+    analysis.sf()       # survival function
+    analysis.hazard()   # hazard function
+    analysis.cdf()      # cumulative distribution function
+    analysis.fr()       # failure rate
+
+Each of these will generate a plot of the function.  For all plotting methods, if ``file_name`` is specified as a parameter, then the method will save to a file rather than display.  For instance::
+
+    analysis.sf(file_name='survival_function.png')
+
+
