@@ -211,9 +211,9 @@ class Analysis:
 
         data['step8'] = censored['data'].apply(func=calc)
 
-        f11 = -np.sum(data['step3']) - np.sum(data['step6'])
-        f12 = -np.sum(data['step5']) - np.sum(data['step8'])
-        f22 = -np.sum(data['step4']) - np.sum(data['step7'])
+        f11 = -np.sum(data['step3']) - np.sum(data['step6'].replace(np.nan, 0))
+        f12 = -np.sum(data['step5']) - np.sum(data['step8'].replace(np.nan, 0))
+        f22 = -np.sum(data['step4']) - np.sum(data['step7'].replace(np.nan, 0))
 
         f = np.matrix([[f11, f12], [f12, f22]])
         fprime = np.linalg.inv(f)
