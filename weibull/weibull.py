@@ -355,16 +355,54 @@ class Analysis:
         if not self.eta or not self.beta:
             raise ParameterError
 
-        x = np.linspace(0.01, self.eta * 5, 100)
+        x = np.linspace(0.01, self.eta * 5, 1000)
         y = scipy.stats.weibull_min.sf(x, self.beta, 0, self.eta)
 
-        self._plot_prob(x, y, show=show, file_name=file_name,
+        upper_upper = scipy.stats.weibull_min.sf(x,
+                                                 self.fit_test['beta upper limit'],
+                                                 0,
+                                                 self.fit_test['eta upper limit'])
+        lower_upper = scipy.stats.weibull_min.sf(x,
+                                                 self.fit_test['beta lower limit'],
+                                                 0,
+                                                 self.fit_test['eta upper limit'])
+        lower_lower = scipy.stats.weibull_min.sf(x,
+                                                 self.fit_test['beta lower limit'],
+                                                 0,
+                                                 self.fit_test['eta lower limit'])
+        upper_lower = scipy.stats.weibull_min.sf(x,
+                                                 self.fit_test['beta upper limit'],
+                                                 0,
+                                                 self.fit_test['eta lower limit'])
+
+        min_y = np.minimum(y, upper_upper)
+        min_y = np.minimum(min_y, lower_upper)
+        min_y = np.minimum(min_y, lower_lower)
+        min_y = np.minimum(min_y, upper_lower)
+
+        max_y = np.maximum(y, upper_upper)
+        max_y = np.maximum(max_y, lower_upper)
+        max_y = np.maximum(max_y, lower_lower)
+        max_y = np.maximum(max_y, upper_lower)
+
+        self._plot_prob(x, y, min_y, max_y,
+                        show=show, file_name=file_name,
                         title='Survival Function',
                         y_label='probability of survival')
 
     def hazard(self, show: bool=True, file_name: str=None):
         r"""
         Plot the hazard (CDF) function
+
+        :param show: True if the plot is to be shown, false if otherwise
+        :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
+        :return: None
+        """
+        self.cdf(show, file_name)
+
+    def cdf(self, show: bool=True, file_name: str=None):
+        r"""
+        Plot the cumulative distribution function
 
         :param show: True if the plot is to be shown, false if otherwise
         :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
@@ -408,24 +446,6 @@ class Analysis:
                         title='Hazard Function',
                         y_label='probability of failure')
 
-    def cdf(self, show: bool=True, file_name: str=None):
-        r"""
-        Plot the cumulative distribution function
-
-        :param show: True if the plot is to be shown, false if otherwise
-        :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
-        :return: None
-        """
-        if not self.eta or not self.beta:
-            raise ParameterError
-
-        x = np.linspace(0.01, self.eta * 5, 100)
-        y = scipy.stats.weibull_min.cdf(x, self.beta, 0, self.eta)
-
-        self._plot_prob(x, y, show=show, file_name=file_name,
-                        title='Cumulative Distribution Function',
-                        y_label='probability of failure')
-
     def fr(self, show: bool=True, file_name: str=None):
         r"""
         Plot failure rate as a function of cycles
@@ -437,10 +457,37 @@ class Analysis:
         if not self.eta or not self.beta:
             raise ParameterError
 
-        x = np.linspace(0.01, self.eta * 5, 100)
+        x = np.linspace(0.01, self.eta * 5, 1000)
         y = (self.beta / self.eta) * (x / self.eta) ** (self.beta - 1)
 
-        self._plot_prob(x, y, show=show, file_name=file_name,
+        beta = self.fit_test['beta upper limit']
+        eta = self.fit_test['eta upper limit']
+        upper_upper = (beta / eta) * (x / eta) ** (beta - 1)
+
+        beta = self.fit_test['beta lower limit']
+        eta = self.fit_test['eta upper limit']
+        lower_upper = (beta / eta) * (x / eta) ** (beta - 1)
+
+        beta = self.fit_test['beta lower limit']
+        eta = self.fit_test['eta lower limit']
+        lower_lower = (beta / eta) * (x / eta) ** (beta - 1)
+
+        beta = self.fit_test['beta upper limit']
+        eta = self.fit_test['eta lower limit']
+        upper_lower = (beta / eta) * (x / eta) ** (beta - 1)
+
+        min_y = np.minimum(y, upper_upper)
+        min_y = np.minimum(min_y, lower_upper)
+        min_y = np.minimum(min_y, lower_lower)
+        min_y = np.minimum(min_y, upper_lower)
+
+        max_y = np.maximum(y, upper_upper)
+        max_y = np.maximum(max_y, lower_upper)
+        max_y = np.maximum(max_y, lower_lower)
+        max_y = np.maximum(max_y, upper_lower)
+
+        self._plot_prob(x, y, min_y, max_y,
+                        show=show, file_name=file_name,
                         title='Failure Rate',
                         y_label='failures/{}'.format(self.x_unit))
 
@@ -460,8 +507,9 @@ class Analysis:
         :param y_label: the y-axis label
         :return: None
         """
-        if len(min_y) > 0 and len(max_y) > 0:
-            plt.fill_between(x, min_y, max_y, alpha=0.25)
+        if min_y is not None and max_y is not None:
+            if len(min_y) > 0 and len(max_y) > 0:
+                plt.fill_between(x, min_y, max_y, alpha=0.25)
         plt.plot(x, y, label='beta: {:.02f}\neta: {:.01f}'.format(self.beta,
                                                                   self.eta))
 
