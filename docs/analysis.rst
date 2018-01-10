@@ -42,7 +42,9 @@ To retrieve the :math:`\beta` and :math:`\eta` values, simply use the instance v
     print(f'beta: {analysis.beta: .02f}')
     print(f'eta: {analysis.eta: .02f}')
 
-Use the ``stats()`` method to get a list of most internal estimates::
+When using the ``fit()`` method, it is also possible to set the confidence levels
+
+Use the ``stats()`` method to get a ``pandas.Series`` containing most internal estimates::
 
     $> analysis.stats
     fit method          maximum likelihood estimation

@@ -236,12 +236,13 @@ class Analysis:
         self._fit_test['eta nominal'] = self.eta
         self._fit_test['eta upper limit'] = eta_upper
 
-    def fit(self, method: str='lr', confidence_level: float=0.95):
+    def fit(self, method: str='lr', confidence_level: float=0.9):
         r"""
         Calculate :math:`\beta` and :math:`\eta` using a linear regression
         or using the maximum likelihood method, depending on the 'method' value.
 
-        :method: 'lr' for linear estimation or 'mle' for maximum likelihood estimation
+        :param method: 'lr' for linear estimation or 'mle' for maximum likelihood estimation
+        :param confidence_level: A number between 0.001 and 0.999 which expresses the confidence levels desired.  This confidence level is reflected in all subsequent actions, especially in plots, and can also affect several internal variables which are shown in ``stats``.
         :return: None
         """
         if method not in ['lr', 'mle']:
