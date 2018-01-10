@@ -13,7 +13,7 @@ suspended = [True, True, True, True, True,
              False, False, False, True, True]
 
 analysis = weibull.Analysis(fail_times, suspended=suspended, unit='hour')
-analysis.fit()
+analysis.fit(confidence_level=0.6)
 
 analysis.probplot(file_name='weibull-fit.png')  # option to save as an image
 analysis.pdf()
@@ -22,9 +22,4 @@ analysis.hazard()
 analysis.cdf()
 analysis.fr()
 
-print(f'beta: {analysis.beta}\teta: {analysis.eta}')
-print(f'{analysis.stats}')
-print(f'B2 life: {analysis.b(2):.02f}\nB10 life: {analysis.b(10):.02f}\nB50 life: {analysis.b(50):.02f}')
-print(f'median: {analysis.median}')
-print(f'mean: {analysis.mean}')
-print(f'mttf: {analysis.mttf}')
+print(analysis.stats)
