@@ -42,6 +42,22 @@ To retrieve the :math:`\beta` and :math:`\eta` values, simply use the instance v
     print(f'beta: {analysis.beta: .02f}')
     print(f'eta: {analysis.eta: .02f}')
 
+Use the ``stats()`` method to get a list of most internal estimates::
+
+    $> analysis.stats
+    fit method          maximum likelihood estimation
+    confidence                                    0.6
+    beta lower limit                          2.42828
+    beta nominal                              2.97444
+    beta upper limit                          3.64344
+    eta lower limit                           186.483
+    eta nominal                               203.295
+    eta upper limit                           221.622
+    mean life                                  181.47
+    median life                               179.727
+    b10 life                                   95.401
+    dtype: object
+
 Plotting
 --------
 
