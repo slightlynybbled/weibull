@@ -59,6 +59,6 @@ plotter.beta = 1.0
 plotter.fr(show=False)
 
 plotter.beta = 10
-plotter.eta = 10.0
+plotter.eta = 4.0
 
 plotter.fr(file_name='bathtub-components.png')
