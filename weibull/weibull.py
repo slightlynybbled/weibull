@@ -363,32 +363,22 @@ class Analysis:
         x = x[: len(y)]
 
         if self._fit_test is not None:
-            upper_upper = scipy.stats.weibull_min.sf(x,
-                                                     self._fit_test['beta upper limit'],
-                                                     0,
-                                                     self._fit_test['eta upper limit'])
-            lower_upper = scipy.stats.weibull_min.sf(x,
-                                                     self._fit_test['beta lower limit'],
-                                                     0,
-                                                     self._fit_test['eta upper limit'])
-            lower_lower = scipy.stats.weibull_min.sf(x,
-                                                     self._fit_test['beta lower limit'],
-                                                     0,
-                                                     self._fit_test['eta lower limit'])
-            upper_lower = scipy.stats.weibull_min.sf(x,
-                                                     self._fit_test['beta upper limit'],
-                                                     0,
-                                                     self._fit_test['eta lower limit'])
-
-            min_y = np.minimum(y, upper_upper)
-            min_y = np.minimum(min_y, lower_upper)
-            min_y = np.minimum(min_y, lower_lower)
-            min_y = np.minimum(min_y, upper_lower)
-
-            max_y = np.maximum(y, upper_upper)
-            max_y = np.maximum(max_y, lower_upper)
-            max_y = np.maximum(max_y, lower_lower)
-            max_y = np.maximum(max_y, upper_lower)
+            betas = np.linspace(self._fit_test['beta lower limit'],
+                                self._fit_test['beta upper limit'],
+                                10)
+            etas = np.linspace(self._fit_test['eta lower limit'],
+                              self._fit_test['eta upper limit'],
+                              10)
+            min_y = y
+            max_y = y
+            for beta in betas:
+                for eta in etas:
+                    values = scipy.stats.weibull_min.sf(x,
+                                                        beta,
+                                                        0,
+                                                        eta)
+                    min_y = np.minimum(min_y, values)
+                    max_y = np.maximum(max_y, values)
         else:
             min_y = None
             max_y = None
@@ -426,32 +416,22 @@ class Analysis:
         x = x[: len(y)]
 
         if self._fit_test is not None:
-            upper_upper = scipy.stats.weibull_min.cdf(x,
-                                                      self._fit_test['beta upper limit'],
-                                                      0,
-                                                      self._fit_test['eta upper limit'])
-            lower_upper = scipy.stats.weibull_min.cdf(x,
-                                                      self._fit_test['beta lower limit'],
-                                                      0,
-                                                      self._fit_test['eta upper limit'])
-            lower_lower = scipy.stats.weibull_min.cdf(x,
-                                                      self._fit_test['beta lower limit'],
-                                                      0,
-                                                      self._fit_test['eta lower limit'])
-            upper_lower = scipy.stats.weibull_min.cdf(x,
-                                                      self._fit_test['beta upper limit'],
-                                                      0,
-                                                      self._fit_test['eta lower limit'])
-
-            min_y = np.minimum(y, upper_upper)
-            min_y = np.minimum(min_y, lower_upper)
-            min_y = np.minimum(min_y, lower_lower)
-            min_y = np.minimum(min_y, upper_lower)
-
-            max_y = np.maximum(y, upper_upper)
-            max_y = np.maximum(max_y, lower_upper)
-            max_y = np.maximum(max_y, lower_lower)
-            max_y = np.maximum(max_y, upper_lower)
+            betas = np.linspace(self._fit_test['beta lower limit'],
+                                self._fit_test['beta upper limit'],
+                                10)
+            etas = np.linspace(self._fit_test['eta lower limit'],
+                              self._fit_test['eta upper limit'],
+                              10)
+            min_y = y
+            max_y = y
+            for beta in betas:
+                for eta in etas:
+                    values = scipy.stats.weibull_min.cdf(x,
+                                                         beta,
+                                                         0,
+                                                         eta)
+                    min_y = np.minimum(min_y, values)
+                    max_y = np.maximum(max_y, values)
         else:
             min_y = None
             max_y = None
@@ -476,31 +456,20 @@ class Analysis:
         y = (self.beta / self.eta) * (x / self.eta) ** (self.beta - 1)
 
         if self._fit_test is not None:
-            beta = self._fit_test['beta upper limit']
-            eta = self._fit_test['eta upper limit']
-            upper_upper = (beta / eta) * (x / eta) ** (beta - 1)
+            betas = np.linspace(self._fit_test['beta lower limit'],
+                                self._fit_test['beta upper limit'],
+                                10)
+            etas = np.linspace(self._fit_test['eta lower limit'],
+                              self._fit_test['eta upper limit'],
+                              10)
+            min_y = y
+            max_y = y
+            for beta in betas:
+                for eta in etas:
+                    values = (beta / eta) * (x / eta) ** (beta - 1)
+                    min_y = np.minimum(min_y, values)
+                    max_y = np.maximum(max_y, values)
 
-            beta = self._fit_test['beta lower limit']
-            eta = self._fit_test['eta upper limit']
-            lower_upper = (beta / eta) * (x / eta) ** (beta - 1)
-
-            beta = self._fit_test['beta lower limit']
-            eta = self._fit_test['eta lower limit']
-            lower_lower = (beta / eta) * (x / eta) ** (beta - 1)
-
-            beta = self._fit_test['beta upper limit']
-            eta = self._fit_test['eta lower limit']
-            upper_lower = (beta / eta) * (x / eta) ** (beta - 1)
-
-            min_y = np.minimum(y, upper_upper)
-            min_y = np.minimum(min_y, lower_upper)
-            min_y = np.minimum(min_y, lower_lower)
-            min_y = np.minimum(min_y, upper_lower)
-
-            max_y = np.maximum(y, upper_upper)
-            max_y = np.maximum(max_y, lower_upper)
-            max_y = np.maximum(max_y, lower_lower)
-            max_y = np.maximum(max_y, upper_lower)
         else:
             min_y = None
             max_y = None
