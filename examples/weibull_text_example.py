@@ -27,11 +27,9 @@ suspensions = [1, 0, 1, 1,
 analysis = weibull.Analysis(fail_times, suspensions, unit='hour')
 analysis.fit(method='mle', confidence_level=0.6)
 
-print(analysis.fit_test)
+print(analysis.stats)
 
 analysis.probplot()
-
-print(f'beta: {analysis.beta:.02f}\teta: {analysis.eta:.01f}')
 
 analysis.hazard()
 analysis.sf()

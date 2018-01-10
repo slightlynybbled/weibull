@@ -39,13 +39,13 @@ class Analysis:
 
     :ivar beta: The current value of the shape parameter, :math:`\beta`.  This value is initially set to ``None``.  The proper value for ``beta`` will be calculated on call to the ``fit()`` method.  The user may also set this value directly.
     :ivar eta: The current value of the scale parameter, :math:`\eta`. This value is initially set to ``None``.  The proper value for ``beta`` will be calculated on call to the ``fit()`` method.  The user may also set this value directly.
-    :ivar fit_test: Basic statistics regarding the results of ``fit()``, such as :math:`R^2` and P-value.
+    :ivar _fit_test: Basic statistics regarding the results of ``fit()``, such as :math:`R^2` and P-value.
     """
 
     def __init__(self, data: list, suspended: list=None, unit: str='cycle'):
 
         self.x_unit = unit
-        self.fit_test = None
+        self._fit_test = None
 
         self.beta, self.eta = None, None
 
@@ -119,7 +119,7 @@ class Analysis:
 
         logger.debug('beta: {:.2f}, eta: {:.2f}'.format(self.beta, self.eta))
 
-        self.fit_test = pd.Series({'r_squared': r_value ** 2, 'p_value': p_value, 'fit method': 'linear regression'})
+        self._fit_test = pd.Series({'r_squared': r_value ** 2, 'p_value': p_value, 'fit method': 'linear regression'})
 
     def _maximum_likelihood_estimation(self):
         r"""
@@ -158,7 +158,7 @@ class Analysis:
         self.beta = shape
         self.eta = scale
 
-        self.fit_test = pd.Series({'fit method': 'maximum likelihood estimation'})
+        self._fit_test = pd.Series({'fit method': 'maximum likelihood estimation'})
 
     def _confidence(self, confidence=0.95):
         r"""
@@ -228,13 +228,13 @@ class Analysis:
         eta_lower = self.eta / (np.e ** (k * np.sqrt(fprime[0, 0]) / self.eta))
         eta_upper = self.eta * np.e ** (k * np.sqrt(fprime[0, 0]) / self.eta)
 
-        self.fit_test['confidence'] = confidence
-        self.fit_test['beta lower limit'] = beta_lower
-        self.fit_test['beta nominal'] = self.beta
-        self.fit_test['beta upper limit'] = beta_upper
-        self.fit_test['eta lower limit'] = eta_lower
-        self.fit_test['eta nominal'] = self.eta
-        self.fit_test['eta upper limit'] = eta_upper
+        self._fit_test['confidence'] = confidence
+        self._fit_test['beta lower limit'] = beta_lower
+        self._fit_test['beta nominal'] = self.beta
+        self._fit_test['beta upper limit'] = beta_upper
+        self._fit_test['eta lower limit'] = eta_lower
+        self._fit_test['eta nominal'] = self.eta
+        self._fit_test['eta upper limit'] = eta_upper
 
     def fit(self, method: str='lr', confidence_level: float=0.95):
         r"""
@@ -362,21 +362,21 @@ class Analysis:
         x = x[: len(y)]
 
         upper_upper = scipy.stats.weibull_min.sf(x,
-                                                 self.fit_test['beta upper limit'],
+                                                 self._fit_test['beta upper limit'],
                                                  0,
-                                                 self.fit_test['eta upper limit'])
+                                                 self._fit_test['eta upper limit'])
         lower_upper = scipy.stats.weibull_min.sf(x,
-                                                 self.fit_test['beta lower limit'],
+                                                 self._fit_test['beta lower limit'],
                                                  0,
-                                                 self.fit_test['eta upper limit'])
+                                                 self._fit_test['eta upper limit'])
         lower_lower = scipy.stats.weibull_min.sf(x,
-                                                 self.fit_test['beta lower limit'],
+                                                 self._fit_test['beta lower limit'],
                                                  0,
-                                                 self.fit_test['eta lower limit'])
+                                                 self._fit_test['eta lower limit'])
         upper_lower = scipy.stats.weibull_min.sf(x,
-                                                 self.fit_test['beta upper limit'],
+                                                 self._fit_test['beta upper limit'],
                                                  0,
-                                                 self.fit_test['eta lower limit'])
+                                                 self._fit_test['eta lower limit'])
 
         min_y = np.minimum(y, upper_upper)
         min_y = np.minimum(min_y, lower_upper)
@@ -421,21 +421,21 @@ class Analysis:
         x = x[: len(y)]
 
         upper_upper = scipy.stats.weibull_min.cdf(x,
-                                                  self.fit_test['beta upper limit'],
+                                                  self._fit_test['beta upper limit'],
                                                   0,
-                                                  self.fit_test['eta upper limit'])
+                                                  self._fit_test['eta upper limit'])
         lower_upper = scipy.stats.weibull_min.cdf(x,
-                                                  self.fit_test['beta lower limit'],
+                                                  self._fit_test['beta lower limit'],
                                                   0,
-                                                  self.fit_test['eta upper limit'])
+                                                  self._fit_test['eta upper limit'])
         lower_lower = scipy.stats.weibull_min.cdf(x,
-                                                  self.fit_test['beta lower limit'],
+                                                  self._fit_test['beta lower limit'],
                                                   0,
-                                                  self.fit_test['eta lower limit'])
+                                                  self._fit_test['eta lower limit'])
         upper_lower = scipy.stats.weibull_min.cdf(x,
-                                                  self.fit_test['beta upper limit'],
+                                                  self._fit_test['beta upper limit'],
                                                   0,
-                                                  self.fit_test['eta lower limit'])
+                                                  self._fit_test['eta lower limit'])
 
         min_y = np.minimum(y, upper_upper)
         min_y = np.minimum(min_y, lower_upper)
@@ -466,20 +466,20 @@ class Analysis:
         x = np.linspace(0.01, self.eta * 2, 1000)
         y = (self.beta / self.eta) * (x / self.eta) ** (self.beta - 1)
 
-        beta = self.fit_test['beta upper limit']
-        eta = self.fit_test['eta upper limit']
+        beta = self._fit_test['beta upper limit']
+        eta = self._fit_test['eta upper limit']
         upper_upper = (beta / eta) * (x / eta) ** (beta - 1)
 
-        beta = self.fit_test['beta lower limit']
-        eta = self.fit_test['eta upper limit']
+        beta = self._fit_test['beta lower limit']
+        eta = self._fit_test['eta upper limit']
         lower_upper = (beta / eta) * (x / eta) ** (beta - 1)
 
-        beta = self.fit_test['beta lower limit']
-        eta = self.fit_test['eta lower limit']
+        beta = self._fit_test['beta lower limit']
+        eta = self._fit_test['eta lower limit']
         lower_lower = (beta / eta) * (x / eta) ** (beta - 1)
 
-        beta = self.fit_test['beta upper limit']
-        eta = self.fit_test['eta lower limit']
+        beta = self._fit_test['beta upper limit']
+        eta = self._fit_test['eta lower limit']
         upper_lower = (beta / eta) * (x / eta) ** (beta - 1)
 
         min_y = np.minimum(y, upper_upper)
@@ -607,6 +607,20 @@ class Analysis:
             raise ParameterError
 
         return self.eta
+
+    @property
+    def stats(self):
+        r"""
+        Returns the fit statistics, confidence limits, etc
+        :return: a pandas series containing the fit statistics
+        """
+        data = self._fit_test
+
+        data['mean life'] = self.mean
+        data['median life'] = self.median
+        data['b10 life'] = self.b(10)
+
+        return data
 
 
 class Design:

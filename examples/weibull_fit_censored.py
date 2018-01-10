@@ -23,7 +23,7 @@ analysis.cdf()
 analysis.fr()
 
 print(f'beta: {analysis.beta}\teta: {analysis.eta}')
-print(f'{analysis.fit_test}')
+print(f'{analysis.stats}')
 print(f'B2 life: {analysis.b(2):.02f}\nB10 life: {analysis.b(10):.02f}\nB50 life: {analysis.b(50):.02f}')
 print(f'median: {analysis.median}')
 print(f'mean: {analysis.mean}')
