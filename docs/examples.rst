@@ -124,6 +124,52 @@ Shown are two example calculations for a target lifetime of 10000 hours with a r
     # The 'test_cycles' parameter can be in any units.
     # Days, weeks, hours, cycles, etc., so long
     #   as the target unit is consistent
-    print(f'Minimum number of units for 10000 hour run: {designer.num_of_units(test_cycles=10000)}')
+    print(f'Minimum number of units for 10000 hour run:{designer.num_of_units(test_cycles=10000)}')
     print(f'Minimum hours for 20 units: {designer.num_of_cycles(num_of_units=20)}')
 
+Weibayes Analysis
+^^^^^^^^^^^^^^^^^
+
+Use Weibayes analysis to assist with designing your test or evaluating reliability within a certain confidence interval based on historical data.
+
+You have a product that needs to be tested to B2 life of 40 million time units with a confidence limit of 95%.  The product had an expected beta of 2 (lots of historical data there).  B2 life is the same as 98% survival.
+
+Using the weibull test `Design` class, we need to run 62 units (the limit of our test rig) for 62 million time units with no failures::
+
+    import weibull
+
+    designer = weibull.Design(
+        target_cycles=40e6,
+        reliability=0.98,
+        confidence_level=0.95,
+        expected_beta=2
+    )
+
+    print(f'Minimum hours for 62 units: {designer.num_of_cycles(num_of_units=62)}')
+
+Result::
+
+    61860134.45191945
+
+Weibayes analysis on the data would arrive at the same result.::
+
+    import weibull
+
+    # we want N units to run for H hours each
+    N = 62
+    H = 62.0e6
+
+    run_times_desired = [H] * N
+    weibayes = weibull.Weibayes(run_times_desired, confidence_level=0.95, beta=2)
+
+    print(f'B2 life: {weibayes.b(2)}')
+
+Results::
+
+    B2 life: 40090439.86038491
+
+Note that this `B2` matches very closely with `target_cycles` value found in the above iteration of the `Design` class.
+
+We can further plot the data using `weibayes.plot()` resulting in:
+
+.. image:: images/weibayes.png

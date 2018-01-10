@@ -9,11 +9,12 @@ Welcome to weibull's documentation!
 ..  toctree::
     :maxdepth: 2
 
-    Brief Introduction to Reliability Analysis <briefintro.rst>
+    Installation <installation.rst>
     Analysis <analysis.rst>
     Design <design.rst>
     Weibayes <weibayes.rst>
     Examples <examples.rst>
+    Brief Introduction to Reliability Analysis <briefintro.rst>
 
 Introduction
 ------------
