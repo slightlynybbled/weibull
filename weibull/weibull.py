@@ -339,7 +339,8 @@ class Analysis:
         x = np.linspace(0.01, self.eta*5, 100)
         y = scipy.stats.weibull_min.pdf(x, self.beta, 0, self.eta)
 
-        self._plot_prob(x, y, show, file_name,
+        self._plot_prob(x, y,
+                        show=show, file_name=file_name,
                         title='Probability Density Function',
                         y_label='probability/{}'.format(self.x_unit))
 
@@ -357,7 +358,7 @@ class Analysis:
         x = np.linspace(0.01, self.eta * 5, 100)
         y = scipy.stats.weibull_min.sf(x, self.beta, 0, self.eta)
 
-        self._plot_prob(x, y, show, file_name,
+        self._plot_prob(x, y, show=show, file_name=file_name,
                         title='Survival Function',
                         y_label='probability of survival')
 
@@ -372,10 +373,38 @@ class Analysis:
         if not self.eta or not self.beta:
             raise ParameterError
 
-        x = np.linspace(0.01, self.eta * 5, 100)
+        x = np.linspace(0.01, self.eta * 5, 1000)
         y = scipy.stats.weibull_min.cdf(x, self.beta, 0, self.eta)
 
-        self._plot_prob(x, y, show, file_name,
+        upper_upper = scipy.stats.weibull_min.cdf(x,
+                                                  self.fit_test['beta upper limit'],
+                                                  0,
+                                                  self.fit_test['eta upper limit'])
+        lower_upper = scipy.stats.weibull_min.cdf(x,
+                                                  self.fit_test['beta lower limit'],
+                                                  0,
+                                                  self.fit_test['eta upper limit'])
+        lower_lower = scipy.stats.weibull_min.cdf(x,
+                                                  self.fit_test['beta lower limit'],
+                                                  0,
+                                                  self.fit_test['eta lower limit'])
+        upper_lower = scipy.stats.weibull_min.cdf(x,
+                                                  self.fit_test['beta upper limit'],
+                                                  0,
+                                                  self.fit_test['eta lower limit'])
+
+        min_y = np.minimum(y, upper_upper)
+        min_y = np.minimum(min_y, lower_upper)
+        min_y = np.minimum(min_y, lower_lower)
+        min_y = np.minimum(min_y, upper_lower)
+
+        max_y = np.maximum(y, upper_upper)
+        max_y = np.maximum(max_y, lower_upper)
+        max_y = np.maximum(max_y, lower_lower)
+        max_y = np.maximum(max_y, upper_lower)
+
+        self._plot_prob(x, y, min_y, max_y,
+                        show, file_name,
                         title='Hazard Function',
                         y_label='probability of failure')
 
@@ -393,7 +422,7 @@ class Analysis:
         x = np.linspace(0.01, self.eta * 5, 100)
         y = scipy.stats.weibull_min.cdf(x, self.beta, 0, self.eta)
 
-        self._plot_prob(x, y, show, file_name,
+        self._plot_prob(x, y, show=show, file_name=file_name,
                         title='Cumulative Distribution Function',
                         y_label='probability of failure')
 
@@ -411,24 +440,31 @@ class Analysis:
         x = np.linspace(0.01, self.eta * 5, 100)
         y = (self.beta / self.eta) * (x / self.eta) ** (self.beta - 1)
 
-        self._plot_prob(x, y, show, file_name,
+        self._plot_prob(x, y, show=show, file_name=file_name,
                         title='Failure Rate',
                         y_label='failures/{}'.format(self.x_unit))
 
-    def _plot_prob(self, x: list, y: list, show: bool=True, file_name: str=None, title: str=None, y_label: str='probability'):
+    def _plot_prob(self, x: list, y: list,
+                   min_y: list=None, max_y: list=None,
+                   show: bool=True, file_name: str=None, title: str=None, y_label: str='probability'):
         r"""
         Base plot function used for the density function plotting
 
         :param x: the x values
         :param y: the y values
+        :param min_y: the minimum y values (used to shade confidence limits)
+        :param max_y: the maximum y values (used to shade confidence limits)
         :param show: True if the plot is to be shown, false if otherwise
         :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
         :param title: the plot title
         :param y_label: the y-axis label
         :return: None
         """
+        if len(min_y) > 0 and len(max_y) > 0:
+            plt.fill_between(x, min_y, max_y, alpha=0.25)
         plt.plot(x, y, label='beta: {:.02f}\neta: {:.01f}'.format(self.beta,
                                                                   self.eta))
+
         plt.legend()
         plt.xlim(0)
         plt.ylim(0)
