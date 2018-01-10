@@ -85,7 +85,7 @@ Each of these functions will generate a plot that is suitable for publication or
 Confidence Levels
 ^^^^^^^^^^^^^^^^^
 
-Some plots will contain a shaded region which reflects the confidence limits.  The confidence levels are calculate for :math:`\beta` and :math:`\eta` and the min/max values for :math:`\beta` and :math:`\eta` are explored rather than all possible values.  As a result, the visualizations shown are an approximation of the confidence limits.
+Some plots will contain a shaded region which reflects the :ref:`confidence_levels`.  The confidence levels are calculate for :math:`\beta` and :math:`\eta` and the min/max values for :math:`\beta` and :math:`\eta` are explored rather than all possible values.  As a result, the visualizations shown are an approximation of the confidence limits.
 
 Class Documentation
 -------------------

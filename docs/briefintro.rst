@@ -71,11 +71,22 @@ In general, if only a small number of data points are available, then the approx
 
 Currently, this package uses the linear regression (LR) and maximum likelihood estimation (MLE) techniques for estimating :math:`\beta` and :math:`\eta`.  Generally, MLE is preferred for larger data sets while LR is preferred for smaller data sets (less than 15).  Examination of the fit is still essential in both methods to determine if the model actually fits the data appropriately.
 
-.. todo: Better explanation of plotting method, including censored and uncensored data
-
 .. _b-life:
 
 B-Life
 ------
 
 A common and effective method for specifying the life of a product is to specify the time when a certain portion of the units are expected to experience failure.  This is often called the B-life of a product where B is followed by the number which specifies the percent of units failed.  For instance, if one were to say that the B10 life of a product were 100 hours, then it would be expected that 10% of all units will have failed at 100 hours.
+
+.. _confidence-levels:
+
+Confidence Levels
+-----------------
+
+Now that you have some :math:`\beta` and :math:`\eta` values, what does that mean?  How certain are you that :math:`\beta` and :math:`\eta` are what you have calculated?  After all, there is almost certainly some level of variation in the data.  Enter ``confidence limits``.  In short, most confidence limits on statistical data will assume a normal distribution to the right or the left of the curve.  So, for instance, if you are looking at a probability plot, you assume that most of the points will be close to the line while some smaller number of points will be further from the line.  The distance from the line will fall in a normal distribution straddling the line.
+
+.. image:: images/weibull-fit-10pt.png
+
+This package integrates confidence limits on the calculation of :math:`\beta` and :math:`\eta` such that the confidence limits define the range of certainty for :math:`\beta` and :math:`\eta` independently.  For instance, if the confidence limit is 0.95, then our calculation is 95% certain that the true :math:`\beta` falls between :math:`\beta_{lower}` and :math:`\beta_{upper}`.  In addition, our calculation is 95% certain that the true :math:`\eta` falls between :math:`\eta_{lower}` and :math:`\eta_{upper}`.  The confidence limits are generally calculated when the curve is fitted.
+
+The best way to increase the confidence limits is to gather more data.  As more data is gathered, then the distributions of :math:`\beta` and :math:`\eta` are better defined.
