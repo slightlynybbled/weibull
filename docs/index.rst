@@ -13,6 +13,7 @@ Welcome to weibull's documentation!
     Analysis <analysis.rst>
     Design <design.rst>
     Weibayes <weibayes.rst>
+    Examples <examples.rst>
 
 Introduction
 ------------
