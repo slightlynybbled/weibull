@@ -336,7 +336,7 @@ class Analysis:
         if not self.eta or not self.beta:
             raise ParameterError
 
-        x = np.linspace(0.01, self.eta*5, 100)
+        x = np.linspace(0.01, self.eta*5, 1000)
         y = scipy.stats.weibull_min.pdf(x, self.beta, 0, self.eta)
 
         self._plot_prob(x, y,
