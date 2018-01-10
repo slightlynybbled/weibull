@@ -29,8 +29,9 @@ analysis.fit(method='mle', confidence_level=0.6)
 
 print(analysis.stats)
 
-analysis.probplot()
+analysis.probplot(file_name='gallery-probplot.png')
 
-analysis.hazard()
-analysis.sf()
-analysis.fr()
+analysis.pdf(file_name='gallery-pdf.png')
+analysis.hazard(file_name='gallery-hazard.png')
+analysis.sf(file_name='gallery-survival.png')
+analysis.fr(file_name='gallery-fr.png')
