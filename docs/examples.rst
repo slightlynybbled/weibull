@@ -95,3 +95,35 @@ Each of these will generate a plot of the function.  For all plotting methods, i
     analysis.sf(file_name='survival_function.png')
 
 
+Test Design
+^^^^^^^^^^^
+
+The Design class is to be utilized for two scenarios:
+
+ - determine the required number of units to prove the target reliability given a test cycles/duration
+ - determine the required number of cycles/duration to prove the target reliability given a number of units
+
+To begin, first import and instantiate the Designer, which is the utility for the test designer. There are several parameters to consider and all of them are requirements or assumptions that must be entered as parameters for the Designer class:
+
+ - target_cycles - the target to be proven in hours/days/weeks/cycles
+ - reliability - defaults to 0.9
+ - confidence_level - defaults to 0.95
+ - expected_beta - an initial assumption for beta (defaults to 2)
+
+Shown are two example calculations for a target lifetime of 10000 hours with a reliability of 0.9 at a confidence level of 0.5 and beta assumption of 1.5::
+
+    import weibull
+
+    designer = weibull.Design(
+        target_cycles=10000,
+        reliability=0.9,
+        confidence_level=0.90,
+        expected_beta=1.5
+    )
+
+    # The 'test_cycles' parameter can be in any units.
+    # Days, weeks, hours, cycles, etc., so long
+    #   as the target unit is consistent
+    print(f'Minimum number of units for 10000 hour run: {designer.num_of_units(test_cycles=10000)}')
+    print(f'Minimum hours for 20 units: {designer.num_of_cycles(num_of_units=20)}')
+
