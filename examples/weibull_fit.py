@@ -21,9 +21,4 @@ analysis.fit()
 
 analysis.probplot()
 analysis.hazard(file_name='hazard.png')
-
-print(f'beta: {analysis.beta}\teta: {analysis.eta}')
-print(f'B2 life: {analysis.b(2):.02f}\nB10 life: {analysis.b(10):.02f}\nB50 life: {analysis.b(50):.02f}')
-print(f'median: {analysis.median}')
-print(f'mean: {analysis.mean}')
-print(f'mttf: {analysis.mttf}')
+print(analysis.stats)
