@@ -25,9 +25,14 @@ suspensions = [1, 0, 1, 1,
 
 # this is where the actual analysis and curve fitting occur
 analysis = weibull.Analysis(fail_times, suspensions, unit='hour')
-analysis.fit(method='mle')
-analysis._confidence()
+analysis.fit(method='mle', confidence_level=0.6)
+
+print(analysis.fit_test)
 
 analysis.probplot()
 
-print(f'beta: {analysis.beta}\teta: {analysis.eta}')
+print(f'beta: {analysis.beta:.02f}\teta: {analysis.eta:.01f}')
+
+analysis.hazard()
+analysis.sf()
+analysis.fr()
