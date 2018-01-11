@@ -35,7 +35,7 @@ The ``weibull`` package is built on ``pandas``, ``numpy``, ``matplotlib``, and `
 Test Coverage
 -------------
 
-Currently, the ``weibull`` package contains no testing.  This will be introduced soon.
+The ``weibull`` package contains testing for the algorithmic elements of the analysis, but no testing for graphic generation.
 
 Classes
 -------
