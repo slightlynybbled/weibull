@@ -12,11 +12,11 @@ suspended = [False] * len(fail_times)
 analysis = weibull.Analysis(fail_times, suspended=suspended, unit='hour')
 analysis.fit(method='mle', confidence_level=0.6)
 
-analysis.probplot()
+analysis.probplot(watermark_text='blah blah')
 analysis.pdf()
 analysis.sf()
 analysis.hazard()
 analysis.cdf()
-analysis.fr()
+analysis.fr(watermark_text='hooray!')
 
 print(analysis.stats)

@@ -8,9 +8,9 @@ exec(open(os.path.join(here, 'weibull/version.py')).read())
 
 requirements = [
     'pandas >= 0.20.0',
-    'numpy >= 1.0',
     'matplotlib >= 2.0',
-    'scipy >= 1.0.0'
+    'numpy >= 1.0',
+    'scipy >= 1.0.0',
 ]
 
 setup_requirements = [

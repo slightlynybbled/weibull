@@ -1,4 +1,5 @@
 import logging
+from io import BytesIO
 
 import pandas as pd
 import numpy as np
@@ -7,6 +8,7 @@ import matplotlib as mpl
 from matplotlib import rcParams
 import scipy.stats
 from scipy.special import gamma
+from PIL import Image
 
 rcParams.update({'figure.autolayout': True})
 
@@ -265,13 +267,15 @@ class Analysis:
 
         self._confidence(confidence_level)
 
-    def probplot(self, show: bool=True, file_name: str=None, **kwargs):
+    def probplot(self, show: bool=True, file_name: str=None,
+                 watermark_text=None, **kwargs):
         r"""
         Generate a probability plot.  Use this to show the data points plotted with
         the beta and eta values.
 
         :param show: True if the plot is to be shown, false if otherwise
         :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
+        :param watermark_text: the text to include on the plot as a watermark
         :param kwargs: valid matplotlib options
         :return: None
         """
@@ -318,20 +322,25 @@ class Analysis:
         ax.yaxis.grid()
         ax.xaxis.grid(which='both')
 
+        if watermark_text:
+            ymin, _ = ax.get_ylim()
+            xmin, _ = ax.get_xlim()
+            plt.annotate(watermark_text, xy=(xmin, ymin), alpha=0.15, rotation=0, fontsize=50)
+
         if file_name:
             plt.savefig(file_name)
 
         if show:
             plt.show()
 
-        return
-
-    def pdf(self, show: bool=True, file_name: str=None):
+    def pdf(self, show: bool=True, file_name: str=None,
+            watermark_text=None):
         r"""
         Plot the probability density function
 
         :param show: True if the plot is to be shown, false if otherwise
         :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
+        :param watermark_text: the text to include as a watermark
         :return: None
         """
         if not self.eta or not self.beta:
@@ -343,14 +352,17 @@ class Analysis:
         self._plot_prob(x, y,
                         show=show, file_name=file_name,
                         title='Probability Density Function',
-                        y_label='probability/{}'.format(self.x_unit))
+                        y_label='probability/{}'.format(self.x_unit),
+                        watermark_text=watermark_text)
 
-    def sf(self, show: bool=True, file_name: str=None):
+    def sf(self, show: bool=True, file_name: str=None,
+           watermark_text=None):
         r"""
         Plot the survival function
 
         :param show: True if the plot is to be shown, false if otherwise
         :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
+        :param watermark_text: the text to include as a watermark
         :return: None
         """
         if not self.eta or not self.beta:
@@ -386,24 +398,30 @@ class Analysis:
         self._plot_prob(x, y, min_y, max_y,
                         show=show, file_name=file_name,
                         title='Survival Function',
-                        y_label='probability of survival')
+                        y_label='probability of survival',
+                        watermark_text=watermark_text)
 
-    def hazard(self, show: bool=True, file_name: str=None):
+    def hazard(self, show: bool=True, file_name: str=None,
+               watermark_text=None):
         r"""
         Plot the hazard (CDF) function
 
         :param show: True if the plot is to be shown, false if otherwise
         :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
+        :param watermark_text: the text to include as a watermark
         :return: None
         """
-        self.cdf(show, file_name)
+        self.cdf(show, file_name,
+                 watermark_text=watermark_text)
 
-    def cdf(self, show: bool=True, file_name: str=None):
+    def cdf(self, show: bool=True, file_name: str=None,
+            watermark_text=None):
         r"""
         Plot the cumulative distribution function
 
         :param show: True if the plot is to be shown, false if otherwise
         :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
+        :param watermark_text: the text to include as a watermark
         :return: None
         """
         if not self.eta or not self.beta:
@@ -439,14 +457,17 @@ class Analysis:
         self._plot_prob(x, y, min_y, max_y,
                         show, file_name,
                         title='Hazard Function',
-                        y_label='probability of failure')
+                        y_label='probability of failure',
+                        watermark_text=watermark_text)
 
-    def fr(self, show: bool=True, file_name: str=None):
+    def fr(self, show: bool=True, file_name: str=None,
+           watermark_text=None):
         r"""
         Plot failure rate as a function of cycles
 
         :param show: True if the item is to be shown now, False if other elements to be added later
         :param file_name: if file_name is stated, then the probplot will be saved as a PNG
+        :param watermark_text: the text to include as a watermark
         :return: None
         """
         if not self.eta or not self.beta:
@@ -477,11 +498,14 @@ class Analysis:
         self._plot_prob(x, y, min_y, max_y,
                         show=show, file_name=file_name,
                         title='Failure Rate',
-                        y_label='failures/{}'.format(self.x_unit))
+                        y_label='failures/{}'.format(self.x_unit),
+                        watermark_text=watermark_text)
 
     def _plot_prob(self, x: list, y: list,
                    min_y: list=None, max_y: list=None,
-                   show: bool=True, file_name: str=None, title: str=None, y_label: str='probability'):
+                   show: bool=True, file_name: str=None,
+                   title: str=None, y_label: str='probability',
+                   watermark_text=None):
         r"""
         Base plot function used for the density function plotting
 
@@ -493,6 +517,7 @@ class Analysis:
         :param file_name: the file name to be passed to ``matplotlib.pyplot.savefig``
         :param title: the plot title
         :param y_label: the y-axis label
+        :param watermark_text: the text to include as a watermark
         :return: None
         """
         if min_y is not None and max_y is not None:
@@ -513,6 +538,11 @@ class Analysis:
 
         if title:
             plt.title(title)
+
+        if watermark_text:
+            ymin, _ = ax.get_ylim()
+            xmin, _ = ax.get_xlim()
+            plt.annotate(watermark_text, xy=(xmin, ymin), alpha=0.15, rotation=0, fontsize=50)
 
         if file_name:
             plt.savefig(file_name)
