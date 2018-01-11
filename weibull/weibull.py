@@ -1,5 +1,4 @@
 import logging
-from io import BytesIO
 
 import pandas as pd
 import numpy as np
@@ -8,7 +7,6 @@ import matplotlib as mpl
 from matplotlib import rcParams
 import scipy.stats
 from scipy.special import gamma
-from PIL import Image
 
 rcParams.update({'figure.autolayout': True})
 
