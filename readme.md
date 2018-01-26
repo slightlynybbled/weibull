@@ -12,6 +12,18 @@ Most of the functionality is backed up by tests with the exception of plotting f
 
 # Contributions
 
-Initial work on this repository was done by user [tgray](https://github.com/tgray).  You can still peruse the [original repository](https://github.com/tgray/weibull).
+Contribution guidelines:
 
-It would be highly useful to have different estimation methods and confidence bounds within the `Analysis` class.  If you are feeling froggy, please, submit your pull request!
+1. Fork the repository to your account.
+2. Clone your account repository to your local development environment.
+3. Create/checkout a new branch appropriately named by feature, bug, issue number, whatever.
+4. Make your changes on your branch.  The ideal changes would:
+ * have testing implemented using `pytest`
+ * have working examples in the `examples` directory
+ * have documentation in the `docs` directory
+5. Push your changes to your github account.
+6. Create a pull request from within github.
+
+If you have created a feature branch and made your changes there, your pull request is much more likely to be accepted even if it doesn't have `pytest`, examples, and documentation.  If you have made the changes on the `master` branch, then it is expected to be a comprehensive pull request with testing, examples, and working documentation.
+
+Initial work on this repository was done by user [tgray](https://github.com/tgray).  You can still peruse the [original repository](https://github.com/tgray/weibull).
