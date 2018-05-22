@@ -10,6 +10,20 @@ In addition, the interface is still maturing as I run it through different use c
 
 Most of the functionality is backed up by tests with the exception of plotting functionality.
 
+# Gallery
+
+## Probability Plot
+
+![Probability plot](docs/images/gallery-probplot.png)
+
+## Hazard Function
+
+![Hazard function plot](docs/images/gallery-hazard.png)
+
+## Survival Function
+
+![Survival function plot](docs/images/gallery-survival.png)
+
 # Contributions
 
 Contribution guidelines:
