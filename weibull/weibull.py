@@ -215,7 +215,7 @@ class Analysis:
         f12 = -np.sum(data['step5']) - np.sum(data['step8'].replace(np.nan, 0))
         f22 = -np.sum(data['step4']) - np.sum(data['step7'].replace(np.nan, 0))
 
-        f = np.matrix([[f11, f12], [f12, f22]])
+        f = np.ndarray(shape=(2, 2), buffer=np.array([f11, f12, f12, f22]))
         fprime = np.linalg.inv(f)
 
         nd = scipy.stats.norm
