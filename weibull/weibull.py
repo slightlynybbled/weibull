@@ -153,6 +153,7 @@ class Analysis:
 
             shape = shape + (a + (1.0 / shape) - (c / b)) / ((1.0 / shape ** 2) + ((b * h) - c ** 2) / b ** 2)
 
+        shape = max(shape, 0.005)
         scale = (np.sum((dtf_all ** shape) / len(df_failed))) ** (1 / shape)
 
         self.beta = shape
