@@ -45,7 +45,7 @@ The **scale** parameter, :math:`\eta`, determines the scale of the distribution.
 
 .. image:: images/eta-effects-on-pdf.png
 
-Note that changes in the scale factor keep the shape, but effectively change the length over which the distribution is 'stretched'.  The hange in height is due to the property that the area under the curve must always be equal to 1.0.
+Note that changes in the scale factor keep the shape, but effectively change the length over which the distribution is 'stretched'.  The change in height is due to the property that the area under the curve must always be equal to 1.0.
 
 Censoring Data
 --------------
