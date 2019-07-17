@@ -620,6 +620,10 @@ class Analysis:
         return self.eta
 
     @property
+    def r_squared(self):
+        return self._fit_test.get('r_squared')
+
+    @property
     def stats(self):
         r"""
         Returns the fit statistics, confidence limits, etc
