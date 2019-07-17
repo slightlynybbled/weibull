@@ -621,7 +621,30 @@ class Analysis:
 
     @property
     def r_squared(self):
+        """
+        Returns the r squared value of the fit test
+
+        :return: the r squared value
+        """
         return self._fit_test.get('r_squared')
+
+    @property
+    def failures(self):
+        """
+        Returns the number of failures in the data set.
+
+        :return: the number of failures in the data set
+        """
+        return sum([1 for susp in self.data['susp'] if susp is False])
+
+    @property
+    def suspensions(self):
+        """
+        Returns the number of suspensions in the data set.
+
+        :return: the number of suspensions in the data set
+        """
+        return sum([1 for susp in self.data['susp'] if susp is True])
 
     @property
     def stats(self):
