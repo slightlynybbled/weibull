@@ -7,8 +7,13 @@ import matplotlib as mpl
 from matplotlib import rcParams
 import scipy.stats
 from scipy.special import gamma
+import datetime
 
 rcParams.update({'figure.autolayout': True})
+# Set a larger default size for plots
+rcParams['figure.figsize'] = [12, 8]
+rcParams['savefig.format'] = 'png'
+# rcParams.update({'savefig.format': 'png'})
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.WARN)
@@ -22,7 +27,13 @@ class ParameterError(Exception):
 
 # convenience functions
 def _weibull_ticks(y, _):
-    return "{:.0f}%".format(100 * (1 - np.exp(-np.exp(y))))
+    # Limit to 6 decimal places to deal w/roundoff error from exp function
+    ycoord = round(100 * (1 - np.exp(-np.exp(y))),6)
+    for i in range(0, 6):
+        if ycoord == round(ycoord, i):
+            tick_fmt = '{:.' + '{0}'.format(i) + 'f}%'
+            return tick_fmt.format(100 * (1 - np.exp(-np.exp(y))))
+    return '{:.6f}%'.format(100 * (1 - np.exp(-np.exp(y))))
 
 
 def _ftolnln(f):
@@ -47,7 +58,9 @@ class Analysis:
         self.x_unit = unit
         self._fit_test = None
 
-        self.beta, self.eta = None, None
+        self.beta, self.eta, self.tzero = None, None, None
+        self.analyst, self.company = None, None
+        self.plot_title = ''
 
         dat = pd.DataFrame({'data': data})
         dat.index = np.arange(1, len(dat) + 1)
@@ -60,7 +73,7 @@ class Analysis:
             dat['susp'] = suspended
 
         if dat['susp'].all():
-            raise ValueError('data must contain at least one observed event')
+            raise ValueError('Data must contain at least one observed event')
 
         dat.sort_values('data', inplace=True)
         dat['rank'] = np.arange(1, len(dat) + 1)
@@ -93,7 +106,7 @@ class Analysis:
         dat['adjm_rank'] = self._med_ra(dat['adj_rank'])
 
     def _med_ra(self, i):
-        """Calculate median rank using Bernard's approximation."""
+        """Calculate median rank using Benard's approximation."""
         i = np.asarray(i)
         med_rank = (i - 0.3) / (len(i) + 0.4)
 
@@ -281,53 +294,203 @@ class Analysis:
         if not self.eta or not self.beta:
             raise ParameterError
 
+        # Check if tzero has been defined & use it if it has [future placeholder]
+        tzero = 0
+        # if self.tzero != None: tzero = self.tzero
+
         susp = any(self.data['susp'])
 
-        if susp:
-            plt.semilogx(self.data['data'], _ftolnln(self.data['adjm_rank']), 'o')
-        else:
-            plt.semilogx(self.data['data'], _ftolnln(self.data['med_rank']), 'o')
+        # The user can define their own title w/the 'plot_title' property
+        # If it's a zero-length string, one wasn't specified, so use the Default
+        if self.plot_title == '': self.plot_title = 'Weibull Probability Plot'
 
-        # calculate the ideal x and y values
-        x_ideal = self.eta * np.random.weibull(self.beta, size=1000)
-        x_ideal.sort()
-        f = 1 - np.exp(-(x_ideal / self.eta) ** self.beta)
-        x_ideal = x_ideal[f > 0.01]  # take f > 1%
-        f = 1 - np.exp(-(x_ideal / self.eta) ** self.beta)
-        x_ideal = x_ideal[f < 0.99]  # take f < 99%
-        f = f[f < 0.99]
-        y_ideal = np.log(-np.log(1 - f))
-
-        plt.semilogx(x_ideal, y_ideal,
-                     label="beta: {:.02f}\neta: {:.01f}".format(self.beta,
-                                                                self.eta))
-        plt.title("Weibull Probability Plot")
-        plt.xlabel('{}s'.format(self.x_unit))
-        plt.ylabel('Accumulated failures per {}'.format(self.x_unit))
-        plt.legend(loc='lower right')
-
-        # Generate ticks
-        def weibull_CDF(y, _):
-            return '{:.0f}%'.format((100 * (1 - np.exp(-np.exp(y)))))
+        # If the title is defined as 'None' then don't display a title at all
+        if self.plot_title is not None: plt.title(self.plot_title)
 
         ax = plt.gca()
-        formatter = mpl.ticker.FuncFormatter(weibull_CDF)
+
+        plt.xlabel('{}s'.format(self.x_unit))
+        plt.ylabel('Unreliability, F(t) = 1 - R(t) (%)')
+
+        # Apply formatted tick marks to the y-axis
+        formatter = mpl.ticker.FuncFormatter(_weibull_ticks)
         ax.yaxis.set_major_formatter(formatter)
 
-        yt_F = np.array([0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5,
-                         0.6, 0.7, 0.8, 0.9, 0.95, 0.99])
+        # Gray Grid Lines
+        major_grid_color = '#BFBFBF'
+        minor_grid_color = '#DFDFDF'
+
+        # Define values for y-axis ticks & major grid lines & plot them
+        yt_F = np.array([0.000001, 0.000005, 0.00001, 0.00005, 0.0001,
+                        0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.2, 0.3,
+                        0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 0.999,
+                        0.9999, 0.99999, 0.999999])
         yt_lnF = np.log(-np.log(1 - yt_F))
         plt.yticks(yt_lnF)
-        ax.yaxis.grid()
-        ax.xaxis.grid(which='both')
+
+        ax.yaxis.grid(color=major_grid_color, linewidth=0.5)
+        ax.xaxis.grid(which='both', color=major_grid_color, linewidth=0.5)
+
+        # Define values for y-axis minor grid lines & plot them
+        y_minor_grid_lines = [0.000002, 0.000003, 0.000004, 0.000006,
+                              0.000007, 0.000008, 0.000009, 0.00002, 0.00003,
+                              0.00004, 0.00006, 0.00007, 0.00008, 0.00009,
+                              0.0002, 0.0003, 0.0004, 0.0006, 0.0007, 0.0008,
+                              0.0009, 0.002, 0.003, 0.004, 0.006, 0.007,
+                              0.008, 0.009, 0.02, 0.03, 0.04, 0.06, 0.07,
+                              0.08, 0.09, 0.12, 0.14, 0.16, 0.18, 0.25, 0.35,
+                               0.45, 0.55, 0.75, 0.85, 0.97]
+
+        for p in y_minor_grid_lines:
+            pt = np.log(-np.log(1 - p))
+            plt.semilogx(ax.get_xlim(), [pt, pt], color=minor_grid_color,
+                        linewidth=0.5)
+
+        # Highlight the 'Characteristic Life' (Eta) line at 63.2%
+        plt.semilogx(ax.get_xlim(), [0,0], color='#FF3F3F', linestyle='dashed',
+                    label = u'Characteristic Life (\u03B7) @ 63.2%')
+        plt.semilogx([self.eta, self.eta], [-15, 0], color='#FF3F3F',
+                    linestyle='dashed')
+
+        # Initially set y-axis lower limit based on the min data rank value
+        if susp:
+            plotymin = np.nanmin(_ftolnln(self.data['adjm_rank']))
+        else:
+            plotymin = np.nanmin(_ftolnln(self.data['med_rank']))
+
+        # Adjust y-axis lower limit using 'yt_F' values as breakpoints
+        plotymin_tmp = plotymin
+        for yt_Fval in yt_F:
+            if np.log(-np.log(1 - yt_Fval)) < plotymin:
+                plotymin_tmp = np.log(-np.log(1 - yt_Fval))
+            else:
+                plotymin = plotymin_tmp
+                break
+
+        # Initially set y-axis upper limit based on the max data rank value
+        if susp:
+            plotymax = np.nanmax(_ftolnln(self.data['adjm_rank']))
+        else:
+            plotymax = np.nanmax(_ftolnln(self.data['med_rank']))
+
+        # Adjust y-axis upper limit using 'yt_F' values as breakpoints
+        for yt_Fval in yt_F:
+            if np.log(-np.log(1 - yt_Fval)) > plotymax:
+                plotymax = np.log(-np.log(1 - yt_Fval))
+                break
+
+        # Ensure the y-axis shows values from 1% to 99% at least
+        plotymin = min([plotymin, np.log(-np.log(1 - 0.01))])
+        plotymax = max([plotymax, np.log(-np.log(1 - 0.99))])
+
+        # Determine the min & max values for the x-axis
+        # - May need to change tzero to self.tzero once it is implemented
+        plotxmin = 10 ** np.floor(np.log10(min(np.nanmin(self.data['data']),
+                    self.eta * (np.exp(plotymin) ** (1/self.beta)) + tzero)))
+        plotxmax = 10 ** np.ceil(np.log10(max(np.nanmax(self.data['data']),
+                    self.eta * (np.exp(plotymax) ** (1/self.beta)) + tzero)))
+
+        # Set the x & y axis limits
+        plt.ylim(plotymin, plotymax)
+        plt.xlim(plotxmin, plotxmax)
+
+        if susp:
+            plt.semilogx(self.data['data'],
+                         _ftolnln(self.data['adjm_rank']), 'o')
+        else:
+            plt.semilogx(self.data['data'],
+                         _ftolnln(self.data['med_rank']), 'o')
+
+        #----------------------------------------------------------------------
+        # Need to account for 'scaled' 3-parameter Weibulls (when implemented)
+        if tzero == 0:
+            # Calculate the y value endpoints for the line fit
+            y_ideal = [np.log(-np.log(1 - yt_F[0])),
+                       np.log(-np.log(1 - yt_F[-1]))]
+
+        else:
+            # Calculate points for the unscaled 3-parameter line fit (curve)
+            # - NEED TO CHECK THIS WHEN 3-PARAMETER WEIBULL CODE IS ADDED
+            p0 = np.log(-np.log(1 - yt_F[0]))
+            dp = (np.log(-np.log(1 - yt_F[-1])) - p0) / 1000
+            y_ideal = [(p * dp + p0) for p in range(0, 1001)]
+
+        # Calculate the x values for the specified y values
+        x_ideal = self.eta * (np.exp(y_ideal) ** (1/self.beta)) + tzero
+
+        #----------------------------------------------------------------------
+        # Define other values to display in Legend
+
+        rsquared = self.r_squared
+        numfail = self.failures
+        numsusp = self.suspensions
+
+        # Date & Time stamps when the plot was generated
+        timestamp = datetime.datetime.today().strftime("%b %d, %Y\n%H:%M:%S")
+
+        # Construct the Annotation with all pertinent information
+        # Start with Beta & Eta values
+        annotation = u'\u03B2 = {:.03f}\n\u03B7 = {:.01f}'.format(
+                        self.beta, self.eta)
+
+        # Only show the t0 term if it is non-zero
+        if tzero != 0 and tzero is not None:
+            annotation += u'\nt\u2080 = {:.01f}'.format(tzero)
+
+        # Append R squared value (if defined), number of failures & suspensions
+        if rsquared is not None:
+            annotation += u'\nR\u00b2 = {:.02f}%'.format(rsquared * 100)
+        annotation += u'\n{0} Failures\n{1} Suspensions\n'.format(
+                        numfail, numsusp)
+
+        # Append names of the analyst & company, w/date & time stamp @ bottom
+        # - Need a property so analyst & company names can be defined
+        analyst_name = self.analyst
+        company_name = self.company
+
+        if analyst_name is not None:
+            annotation += u'\n{0}'.format(analyst_name)
+
+        if company_name is not None:
+            annotation += u'\n{0}'.format(company_name)
+
+        annotation += u'\n{0}'.format(timestamp)
+
+        # Define a string for the type of Weibull fit & append the 'fit method'
+        if tzero == 0:
+            weibull_type = '2-Parameter Weibull'
+        else:
+            weibull_type = '3-Parameter Weibull'
+
+        weibull_type += ',\n' + self._fit_test['fit method'].title()
+        plt.semilogx(x_ideal, y_ideal, label = weibull_type)
+
+        # Create the legend & apply formatting
+        leg = plt.legend(frameon=True, loc='upper left', framealpha=1.0)
+        leg.get_frame().set_edgecolor('black')
+        leg.get_frame().set_linewidth(0.5)
+        leg.get_frame().set_facecolor('white')
+        leg.get_frame().set_boxstyle("round, pad=0., rounding_size=0.")
+
+        # Create an Annotation text box & apply formatting
+        annotation_box = mpl.offsetbox.AnchoredText(annotation,
+                          prop=dict(size=10), frameon=True,
+                          loc='lower right')
+        annotation_box.patch.set_boxstyle("round, pad=0., rounding_size=0.")
+        annotation_box.patch.set_linewidth(0.5)
+        ax.add_artist(annotation_box)
 
         if watermark_text:
             ymin, _ = ax.get_ylim()
             xmin, _ = ax.get_xlim()
-            plt.annotate(watermark_text, xy=(xmin, ymin), alpha=0.15, rotation=0, fontsize=50)
+            plt.annotate(watermark_text, xy=(xmin, ymin), alpha=0.15,
+                         rotation=0, fontsize=50)
 
         if file_name:
-            plt.savefig(file_name)
+            # Append the correct extension to the image filename
+            if file_name[:-4] != '.png':
+                file_name += '.png'
+            plt.savefig(file_name, format='png')
 
         if show:
             plt.show()
@@ -659,6 +822,30 @@ class Analysis:
         data['b10 life'] = self.b(10)
 
         return data
+
+    @property
+    def analyst(self):
+        return self.__analyst
+
+    @analyst.setter
+    def analyst(self, analyst_name):
+        self.__analyst = analyst_name
+
+    @property
+    def company(self):
+        return self.__company
+
+    @company.setter
+    def company(self, company_name):
+        self.__company = company_name
+
+    @property
+    def plot_title(self):
+        return self.__plot_title
+
+    @plot_title.setter
+    def plot_title(self, plot_title):
+        self.__plot_title = plot_title
 
 
 class Design:
