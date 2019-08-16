@@ -71,7 +71,27 @@ Building on the ``analysis`` instance above, we will examine the probability plo
 
 .. image:: images/weibull-fit-10pt.png
 
-We can also examine a number of other common function plots (only the hazard plot is shown, but the others are along the same line).::
+There are some settings for the Weibull probability plots that will allow the user to add more information to the plot itself that are useful when the plot will be included in reports, on web pages, or other situations where the supporting information may not always accompany the plot.  These include being able to specify the Analyst's name and/or the Company or Organization name.
+
+    analysis.analyst = 'John Q. Doe'
+    analysis.company = 'Smith & Smith Engineering'
+
+It should be noted that if either the Analyst or Company name is especially long, the annotation box (where they are displayed) will expand to fit the text which could obscure some portions of the Weibull plot.  To address this, you can place a line feed ('\n') within either name which will force the text to wrap to a shorter length.  These must be defined before calling the ``probplot`` function.
+
+Also, the user can now provide their own more descriptive title for the plot, use the default title, or suppress the title altogether, as follows::
+
+    analysis.plot_title = 'Weibull Analysis of Golden Widget Failures'
+
+Setting the title to a zero-length string (or not defining one at all) will cause the default title of 'Weibull Probability Plot' to be used.  Setting the title to ``None`` will suppress the title line altogether.  Any other value set for ``analysis.plot_title`` will be displayed on the Weibull plot.  This too must be defined before calling the ``probplot`` function.
+
+By default, the probability plot will now be 12 inch x 8 inch (1200 x 800 pixels) to better display enhancements made to the plot format, but it is also possible to change the size of the plot to a different size or aspect ratio by specifying the ``figsize``::
+
+    plt.figure(figsize=(8, 6))
+    analysis.probplot()
+
+where the values of 8 and 6 are in inches (at 100px/inch).  Be aware that generating plots smaller than the default size may result in the Y-Axis labels overlapping one another (especially when analyzing very large data sets), or the annotation box might covering some portion of the Weibull plot or the Characteristic Life line.  You may have to experiment with the size values to get a satisfactory result, and you may also need to use the image resizing features when inserting the image into a document or presentation.
+
+We can also examine a number of other common function plots (only the hazard plot is shown, but the others are along the same line)::
 
     analysis.pdf()
     analysis.sf()
