@@ -76,7 +76,7 @@ There are some settings for the Weibull probability plots that will allow the us
     analysis.analyst = 'John Q. Smith'
     analysis.company = 'Smith & Smith Engineering'
 
-It should be noted that if either the Analyst or Company name is especially long, the annotation box (where they are displayed) will expand to fit the text which could obscure some portions of the Weibull plot.  To address this, you can place a line feed ('\n') within either name which will force the text to wrap to a shorter length.  These must be defined before calling the ``probplot`` function.
+It should be noted that if either the Analyst or Company name is especially long, the annotation box (where they are displayed) will expand to fit the text which could obscure some portions of the Weibull plot.  To address this, you can place a line feed ``'\n'`` within either name which will force the text to wrap to a shorter length.  These must be defined before calling the ``probplot`` function.
 
 Also, the user can now provide their own more descriptive title for the plot, use the default title, or suppress the title altogether, as follows::
 
