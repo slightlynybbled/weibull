@@ -71,7 +71,7 @@ Building on the ``analysis`` instance above, we will examine the probability plo
 
 .. image:: images/weibull-fit-10pt.png
 
-There are some settings for the Weibull probability plots that will allow the user to add more information to the plot itself that are useful when the plot will be included in reports, on web pages, or other situations where the supporting information may not always accompany the plot.  These include being able to specify the Analyst's name and/or the Company or Organization name.
+There are some settings for the Weibull probability plots that will allow the user to add more information to the plot itself that are useful when the plot will be included in reports, on web pages, or other situations where the supporting information may not always accompany the plot.  These include being able to specify the Analyst's name and/or the Company or Organization name::
 
     analysis.analyst = 'John Q. Doe'
     analysis.company = 'Smith & Smith Engineering'
