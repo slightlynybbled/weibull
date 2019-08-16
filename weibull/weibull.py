@@ -492,7 +492,7 @@ class Analysis:
             # Check the filename extension
             file_suff = Path(file_name).suffix
             if file_suff != '.png':
-                if len(file_suff) > 0 and len(file_suff) <= 4:
+                if len(file_suff) > 0 and len(file_suff) <= 5:
                     # Replace original filename extension w/the correct one
                     file_name = file_name.replace(file_suff, '.png')
                 else:
