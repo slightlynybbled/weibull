@@ -8,12 +8,12 @@ from matplotlib import rcParams
 import scipy.stats
 from scipy.special import gamma
 import datetime
+from pathlib import Path
 
 rcParams.update({'figure.autolayout': True})
 # Set a larger default size for plots
 rcParams['figure.figsize'] = [12, 8]
 rcParams['savefig.format'] = 'png'
-# rcParams.update({'savefig.format': 'png'})
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.WARN)
@@ -27,8 +27,10 @@ class ParameterError(Exception):
 
 # convenience functions
 def _weibull_ticks(y, _):
-    # Limit to 6 decimal places to deal w/roundoff error from exp function
+    # Round to 6 decimal places to deal w/roundoff error from exp function
     ycoord = round(100 * (1 - np.exp(-np.exp(y))),6)
+
+    # Format to only as many digits past the decimal as needed
     for i in range(0, 6):
         if ycoord == round(ycoord, i):
             tick_fmt = '{:.' + '{0}'.format(i) + 'f}%'
@@ -487,9 +489,18 @@ class Analysis:
                          rotation=0, fontsize=50)
 
         if file_name:
-            # Append the correct extension to the image filename
-            if file_name[:-4] != '.png':
-                file_name += '.png'
+            # Check the filename extension
+            file_suff = Path(file_name).suffix
+            if file_suff != '.png':
+                if len(file_suff) > 0 and len(file_suff) <= 4:
+                    # Replace original filename extension w/the correct one
+                    file_name = file_name.replace(file_suff, '.png')
+                else:
+                    # Assume longer "suffixes" occur if there are periods in
+                    # the filename, so append the suffix, don't replace it
+                    # - Also handles cases where no suffix is present
+                    file_name += '.png'
+
             plt.savefig(file_name, format='png')
 
         if show:
