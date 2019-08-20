@@ -6,6 +6,9 @@ __version__ = None
 here = os.path.dirname(os.path.dirname(__file__))
 exec(open(os.path.join(here, 'weibull/version.py')).read())
 
+with open('readme.md', 'r') as f:
+    readme = f.read()
+
 requirements = [
     'pandas >= 0.20.0',
     'matplotlib >= 2.0',
@@ -23,6 +26,8 @@ setup(
     name='weibull',
     version=__version__,
     description='Weibull analysis and test design for reliability and life applications',
+    long_description=readme,
+    long_description_content_type='text/markdown',
     author='Jason R. Jones',
     author_email='slightlynybbled@gmail.com',
     url='https://github.com/slightlynybbled/weibull',
