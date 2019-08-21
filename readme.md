@@ -41,3 +41,5 @@ Contribution guidelines:
 If you have created a feature branch and made your changes there, your pull request is much more likely to be accepted even if it doesn't have `pytest`, examples, and documentation.  If you have made the changes on the `master` branch, then it is expected to be a comprehensive pull request with testing, examples, and working documentation.
 
 Initial work on this repository was done by user [tgray](https://github.com/tgray).  You can still peruse the [original repository](https://github.com/tgray/weibull).
+
+Beautiful probably plots contributed by user [AlanLesmerises](https://github.com/AlanLesmerises).
