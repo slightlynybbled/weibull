@@ -19,6 +19,6 @@ fail_times = [
 analysis = weibull.Analysis(fail_times, unit='hour')
 analysis.fit()
 
-analysis.probplot()
+analysis.probplot(file_name='weibull-fit-10pt.png')
 analysis.hazard(file_name='hazard.png')
 print(analysis.stats)
