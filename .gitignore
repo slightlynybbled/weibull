@@ -3,3 +3,4 @@ __pycache__/
 weibull.egg-info/
 build/
 dist/
+venv/
