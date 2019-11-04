@@ -38,8 +38,6 @@ The functionality implemented herein is accurate to the best of my ability, but 
 
 As this library is being depreciated and superceded by the community, I will happily recommend that you direct your efforts towards the [reliability](https://reliability.readthedocs.io/en/latest/) project.  Thank you!
 
-If you have created a feature branch and made your changes there, your pull request is much more likely to be accepted even if it doesn't have `pytest`, examples, and documentation.  If you have made the changes on the `master` branch, then it is expected to be a comprehensive pull request with testing, examples, and working documentation.
-
 Initial work on this repository was done by user [tgray](https://github.com/tgray).  You can still peruse the [original repository](https://github.com/tgray/weibull).
 
 Beautiful probably plots contributed by user [AlanLesmerises](https://github.com/AlanLesmerises).
