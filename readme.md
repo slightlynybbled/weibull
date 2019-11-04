@@ -2,15 +2,17 @@
 
 This package is intended to ease reliability analysis using the Weibull distribution, which is the most common method of reliability analysis.  Check out the [documentation](http://weibull.readthedocs.io/en/latest) for more information!
 
-<span style="color:red">This project has been superceded by a better library called [reliability](https://reliability.readthedocs.io/en/latest/).  Please head over there and show the author some love!</span>
+```diff
+- This project has been superceded by a better library called [reliability](https://reliability.readthedocs.io/en/latest/).  Please head over there and show the author some love!
+```
 
 # Project Maturity
 
 The functionality implemented herein is accurate to the best of my ability, but you should head on over to [reliability](https://reliability.readthedocs.io/en/latest/) for a more feature-rich and better-maintained project.
 
-<span style="color:red">
-This project will not have future revision and you should refactor your code accordingly.  I have included an import warning in `v0.1.3`.
-</span>
+```diff
+- This project will not have future revision and you should refactor your code accordingly.  I have included an import warning in `v0.1.3`.
+```
 
 # Gallery
 
