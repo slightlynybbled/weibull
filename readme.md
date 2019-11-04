@@ -4,7 +4,7 @@ This package is intended to ease reliability analysis using the Weibull distribu
 
 ```diff
 - This project has been superceded by a better 
-- library called .  Please head over there and 
+- library called reliability.  Please head over there and 
 - show the author some love!
 ```
 
