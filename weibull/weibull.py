@@ -266,13 +266,13 @@ class Analysis:
                              'linear regression "lr" or maximum '
                              'likelihood estimation "mle"')
 
-        if method is 'lr':
+        if method == 'lr':
             if len(self.data) >= 15:
                 logger.warning('the maximum likelihood method is likely '
                                'to yield better results with {} data points'.format(len(self.data)))
 
             self._linear_regression()
-        elif method is 'mle':
+        elif method == 'mle':
             if len(self.data) < 15:
                 logger.warning('the linear regression method is likely '
                                'to yield better results with {} data points'.format(len(self.data)))
@@ -309,7 +309,10 @@ class Analysis:
         # If the title is defined as 'None' then don't display a title at all
         if self.plot_title is not None: plt.title(self.plot_title)
 
-        ax = plt.gca()
+        if 'ax' not in kwargs.keys():
+            ax = plt.gca()
+        else:
+            ax = kwargs['ax']
 
         plt.xlabel('{}s'.format(self.x_unit))
         plt.ylabel('Unreliability, F(t) = 1 - R(t) (%)')
@@ -505,6 +508,7 @@ class Analysis:
 
         if show:
             plt.show()
+        return ax
 
     def pdf(self, show: bool=True, file_name: str=None,
             watermark_text=None):
@@ -930,14 +934,14 @@ class Weibayes:
 
         self.data = np.asarray(data)
 
-        self.beta = np.float(beta)
+        self.beta = float(beta)
         self.confidence_level, self.r = None, None
         self.blife = None
 
         self._set_confidence_level(confidence_level)
 
     def _set_confidence_level(self, confidence_level):
-        cl = np.float(confidence_level)
+        cl = float(confidence_level)
         alpha = 1.0 - cl
         r = -np.log(alpha)
 
